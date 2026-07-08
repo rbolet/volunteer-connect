@@ -1,4 +1,4 @@
-# AYSO Volunteer Manager — Data Model Reference
+# Volunteer Connect — Data Model Reference
 
 Upload to Project Knowledge. Reference from task-specific chats; not part of always-on instructions.
 
@@ -9,6 +9,10 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
   - `RANKED_CHOICE` — volunteer submits ranked preferences across slots (field/timeslot example); admin manually resolves conflicts after close.
   - `DIRECT_CLAIM` — volunteer claims one specific slot outright, first-come (tent example).
 - Point awarding is a distinct admin action ("confirm completion"), separate from slot claiming — points aren't awarded just for signing up.
+- `Season` is a first-class org-scoped entity. Teams and Signups reference a `season_id`. The active season drives default views.
+- Team self-join defaults to `volunteer` role. Configurable role assignment rules are deferred post-MVP.
+- `eligible_roles` on Signup is stored as a separate `SignupEligibleRole` join table, not an array/JSON column.
+- All entities carry standard audit/soft-delete fields: `created_at`, `updated_at` (auto-managed by Prisma), `created_by` (user_id FK), `updated_by` (user_id FK), and `deleted_at` (nullable DateTime — soft delete). These are injected via Prisma middleware; queries must filter `deleted_at IS NULL` by default. Join/pivot tables (OrgRole, TeamMembership, SignupEligibleRole) are excluded — they are replaced, not soft-deleted.
 
 ## Entities
 
@@ -25,9 +29,13 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 - user_id, org_id, role (`admin`)
 - Org-scoped admin/coordinator permission, separate from team-level roles.
 
+**Season**
+
+- id, org_id, name (string, e.g. "Fall 2025"), is_active (bool)
+
 **Team**
 
-- id, org_id, name, season
+- id, org_id, season_id (FK → Season), name
 
 **TeamMembership**
 
@@ -36,9 +44,13 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 
 **Signup**
 
-- id, org_id, title, description, mode (`RANKED_CHOICE` | `DIRECT_CLAIM`)
+- id, org_id, season_id (FK → Season), title, description, mode (`RANKED_CHOICE` | `DIRECT_CLAIM`)
 - opens_at, closes_at, status (`draft` | `open` | `closed` | `finalized`)
-- eligible_roles (which TeamMembership roles may respond, e.g. `head_coach` only)
+
+**SignupEligibleRole**
+
+- signup_id, role (`head_coach` | `coach` | `referee` | `volunteer`)
+- Replaces the former `eligible_roles` field on Signup. Defines which TeamMembership roles may respond.
 
 **SignupSlot**
 
@@ -49,6 +61,10 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 - id, slot_id, user_id, team_id (which team gets the points)
 - rank (nullable — used only in RANKED_CHOICE mode)
 - status (`pending` | `assigned` | `declined` | `completed`)
+- Unique constraint: (user_id, slot_id) — prevents duplicate responses per slot.
+- DIRECT_CLAIM: a user may claim multiple slots within the same signup (no signup-level cap).
+- RANKED_CHOICE: one rank entry per slot per user.
+- `declined` is set by admins only (RANKED_CHOICE rejection/reassignment). Volunteers withdraw by deleting their response while the signup is `open`.
 - Editable by the submitting user only while signup.status = `open`.
 
 **PointsLedger**

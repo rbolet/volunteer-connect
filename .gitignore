@@ -51,3 +51,6 @@ pnpm-debug.log*
 # Supabase local dev (generated files)
 supabase/.branches
 supabase/.temp
+
+# AI helper session history
+docs/sessions

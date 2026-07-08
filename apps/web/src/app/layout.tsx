@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "AYSO Volunteer Manager",
+  title: "Volunteer Connect",
   description: "Volunteer signup and team points management",
 }
 

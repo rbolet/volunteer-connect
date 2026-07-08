@@ -1,4 +1,4 @@
-# AYSO Volunteer Manager — Testing Reference
+# Volunteer Connect — Testing Reference
 
 Load on demand. Referenced from CLAUDE.md. Not always-on.
 
