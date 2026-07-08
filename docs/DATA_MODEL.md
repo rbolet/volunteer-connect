@@ -1,0 +1,89 @@
+# AYSO Volunteer Manager — Data Model Reference
+
+Upload to Project Knowledge. Reference from task-specific chats; not part of always-on instructions.
+
+## Assumptions
+
+- `Organization` entity included now even though MVP targets one org — avoids a costly migration if expanded to multiple AYSO regions later. MVP UI can hardcode a single org context.
+- Two signup modes exist and must be modeled distinctly:
+  - `RANKED_CHOICE` — volunteer submits ranked preferences across slots (field/timeslot example); admin manually resolves conflicts after close.
+  - `DIRECT_CLAIM` — volunteer claims one specific slot outright, first-come (tent example).
+- Point awarding is a distinct admin action ("confirm completion"), separate from slot claiming — points aren't awarded just for signing up.
+
+## Entities
+
+**Organization**
+
+- id, name
+
+**User**
+
+- id, org_id, auth_id (Supabase), email, name, created_at
+
+**OrgRole**
+
+- user_id, org_id, role (`admin`)
+- Org-scoped admin/coordinator permission, separate from team-level roles.
+
+**Team**
+
+- id, org_id, name, season
+
+**TeamMembership**
+
+- user_id, team_id, role (`head_coach` | `coach` | `referee` | `volunteer`)
+- Composite key (user_id, team_id, role) — a user can hold multiple roles on the same team, and belong to multiple teams.
+
+**Signup**
+
+- id, org_id, title, description, mode (`RANKED_CHOICE` | `DIRECT_CLAIM`)
+- opens_at, closes_at, status (`draft` | `open` | `closed` | `finalized`)
+- eligible_roles (which TeamMembership roles may respond, e.g. `head_coach` only)
+
+**SignupSlot**
+
+- id, signup_id, label, point_value, capacity (default 1)
+
+**SlotResponse**
+
+- id, slot_id, user_id, team_id (which team gets the points)
+- rank (nullable — used only in RANKED_CHOICE mode)
+- status (`pending` | `assigned` | `declined` | `completed`)
+- Editable by the submitting user only while signup.status = `open`.
+
+**PointsLedger**
+
+- id, team_id, slot_response_id, points, awarded_by (user_id), awarded_at
+- Written only when admin confirms completion. Team point totals = SUM(points) grouped by team_id — compute via query/view, don't store a running total (avoids drift).
+
+## Signup Lifecycle
+
+```
+draft → open → closed → [RANKED_CHOICE: admin finalizes assignments] → finalized
+                       → [DIRECT_CLAIM: admin confirms completions]   → finalized
+```
+
+- `draft`: admin builds slots, not visible to volunteers.
+- `open`: eligible volunteers submit/edit responses (ranked choices or direct claims) until `closes_at`.
+- `closed`: volunteer edits locked. RANKED_CHOICE → admin manually assigns, resolving conflicts. DIRECT_CLAIM → claims stand as-is; admin confirms completion post-event (may happen after the event date, not necessarily immediately at close).
+- `finalized`: assignments locked, points awarded to PointsLedger on completion confirmation. Volunteers: view-only. Admins: retain edit rights.
+
+## Permission Matrix
+
+| Action                                | Admin                   | Volunteer (any role)         |
+| ------------------------------------- | ----------------------- | ---------------------------- |
+| Create/edit signup (draft)            | ✓                       | —                            |
+| View open signup                      | ✓                       | ✓ (if eligible_role matches) |
+| Submit/edit response during `open`    | ✓ (on behalf of anyone) | ✓ (own responses only)       |
+| View responses during `open`/`closed` | ✓                       | own only                     |
+| Finalize assignments (RANKED_CHOICE)  | ✓                       | —                            |
+| Confirm completion → award points     | ✓                       | —                            |
+| Edit after `finalized`                | ✓                       | —                            |
+| View team point totals                | ✓ (all teams)           | ✓ (own teams)                |
+| Create/manage teams                   | ✓                       | —                            |
+| Join/leave a team                     | —                       | ✓ (self-service)             |
+
+## Deferred (not MVP)
+
+- Automated email/reminder system (signup open/close notices, point-deficit warnings).
+- Billing/Stripe, multi-tenant org management.
