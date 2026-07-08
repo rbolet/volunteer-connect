@@ -1,0 +1,249 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum OrgRoleType {
+  admin
+}
+
+enum TeamRole {
+  head_coach
+  coach
+  referee
+  volunteer
+}
+
+enum SignupMode {
+  RANKED_CHOICE
+  DIRECT_CLAIM
+}
+
+enum SignupStatus {
+  draft
+  open
+  closed
+  finalized
+}
+
+enum SlotResponseStatus {
+  pending
+  assigned
+  declined
+  completed
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// Audit fields (created_at, updated_at, created_by, updated_by, deleted_at)
+// are present on all non-pivot models. created_by / updated_by are plain
+// String? fields (user IDs) rather than Prisma relations to avoid a large
+// fan-out of back-references on User. Enforced at the application layer via
+// a Prisma client extension (see CROSSCONTEXT_TODOS.md).
+// Pivot tables (OrgRole, TeamMembership, SignupEligibleRole) are excluded.
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id         String    @id @default(cuid())
+  name       String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  users    User[]
+  orgRoles OrgRole[]
+  seasons  Season[]
+  teams    Team[]
+  signups  Signup[]
+
+  @@map("organizations")
+}
+
+model User {
+  id         String    @id @default(cuid())
+  org_id     String
+  auth_id    String    @unique
+  email      String
+  name       String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  org             Organization     @relation(fields: [org_id], references: [id])
+  orgRoles        OrgRole[]
+  teamMemberships TeamMembership[]
+  slotResponses   SlotResponse[]
+  awardedPoints   PointsLedger[]
+
+  @@map("users")
+}
+
+// Pivot — no audit fields
+model OrgRole {
+  user_id String
+  org_id  String
+  role    OrgRoleType
+
+  user User         @relation(fields: [user_id], references: [id])
+  org  Organization @relation(fields: [org_id], references: [id])
+
+  @@id([user_id, org_id])
+  @@map("org_roles")
+}
+
+model Season {
+  id         String    @id @default(cuid())
+  org_id     String
+  name       String
+  is_active  Boolean   @default(false)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  org     Organization @relation(fields: [org_id], references: [id])
+  teams   Team[]
+  signups Signup[]
+
+  @@map("seasons")
+}
+
+model Team {
+  id         String    @id @default(cuid())
+  org_id     String
+  season_id  String
+  name       String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  org           Organization     @relation(fields: [org_id], references: [id])
+  season        Season           @relation(fields: [season_id], references: [id])
+  memberships   TeamMembership[]
+  slotResponses SlotResponse[]
+  pointsLedger  PointsLedger[]
+
+  @@map("teams")
+}
+
+// Pivot — no audit fields
+model TeamMembership {
+  user_id String
+  team_id String
+  role    TeamRole
+
+  user User @relation(fields: [user_id], references: [id])
+  team Team @relation(fields: [team_id], references: [id])
+
+  @@id([user_id, team_id, role])
+  @@map("team_memberships")
+}
+
+model Signup {
+  id          String       @id @default(cuid())
+  org_id      String
+  season_id   String
+  title       String
+  description String?
+  mode        SignupMode
+  opens_at    DateTime?
+  closes_at   DateTime?
+  status      SignupStatus @default(draft)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  created_by  String?
+  updated_by  String?
+  deleted_at  DateTime?
+
+  org           Organization         @relation(fields: [org_id], references: [id])
+  season        Season               @relation(fields: [season_id], references: [id])
+  eligibleRoles SignupEligibleRole[]
+  slots         SignupSlot[]
+
+  @@map("signups")
+}
+
+// Pivot — no audit fields
+model SignupEligibleRole {
+  signup_id String
+  role      TeamRole
+
+  signup Signup @relation(fields: [signup_id], references: [id])
+
+  @@id([signup_id, role])
+  @@map("signup_eligible_roles")
+}
+
+model SignupSlot {
+  id          String    @id @default(cuid())
+  signup_id   String
+  label       String
+  point_value Int       @default(0)
+  capacity    Int       @default(1)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  created_by  String?
+  updated_by  String?
+  deleted_at  DateTime?
+
+  signup    Signup         @relation(fields: [signup_id], references: [id])
+  responses SlotResponse[]
+
+  @@map("signup_slots")
+}
+
+model SlotResponse {
+  id         String             @id @default(cuid())
+  slot_id    String
+  user_id    String
+  team_id    String
+  rank       Int?
+  status     SlotResponseStatus @default(pending)
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  slot         SignupSlot     @relation(fields: [slot_id], references: [id])
+  user         User           @relation(fields: [user_id], references: [id])
+  team         Team           @relation(fields: [team_id], references: [id])
+  pointsLedger PointsLedger[]
+
+  @@unique([user_id, slot_id])
+  @@map("slot_responses")
+}
+
+model PointsLedger {
+  id               String    @id @default(cuid())
+  team_id          String
+  slot_response_id String
+  points           Int
+  awarded_by       String
+  awarded_at       DateTime  @default(now())
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  created_by       String?
+  updated_by       String?
+  deleted_at       DateTime?
+
+  team         Team         @relation(fields: [team_id], references: [id])
+  slotResponse SlotResponse @relation(fields: [slot_response_id], references: [id])
+  awardedBy    User         @relation(fields: [awarded_by], references: [id])
+
+  @@map("points_ledger")
+}

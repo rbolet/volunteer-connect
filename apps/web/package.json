@@ -1,5 +1,5 @@
 {
-  "name": "@ayso/web",
+  "name": "@vc/web",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -7,13 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "test": "vitest"
   },
   "dependencies": {
-    "@ayso/types": "workspace:*",
-    "@ayso/zod": "workspace:*",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.0",
+    "@vc/types": "workspace:*",
+    "@vc/zod": "workspace:*",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.0",
     "@playwright/test": "^1.50.0",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.0",
     "@types/node": "^22.0.0",
@@ -32,6 +34,7 @@
     "eslint-config-next": "^15.3.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^29.1.1",
     "msw": "^2.7.0",
     "postcss": "^8.5.0",
     "tailwindcss": "^3.4.0",

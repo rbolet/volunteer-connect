@@ -1,5 +1,5 @@
 {
-  "name": "@ayso/types",
+  "name": "@vc/types",
   "version": "0.0.1",
   "private": true,
   "exports": {
@@ -7,7 +7,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "vitest"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --passWithNoTests"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

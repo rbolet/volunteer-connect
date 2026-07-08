@@ -1,5 +1,5 @@
 {
-  "name": "ayso-volunteer-manager",
+  "name": "volunteer-connect",
   "private": true,
   "version": "0.0.1",
   "engines": {
@@ -9,8 +9,12 @@
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
+    "dev:web": "turbo dev --filter @vc/web",
+    "dev:api": "turbo dev --filter @vc/api",
     "lint": "turbo lint",
     "test": "turbo test",
+    "typecheck": "turbo typecheck",
+    "check": "prettier --write \"**/*.{ts,tsx,json,md}\" && turbo lint typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
   },
   "devDependencies": {

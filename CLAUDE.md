@@ -1,4 +1,4 @@
-# AYSO Volunteer Manager — Project Instructions
+# Volunteer Connect — Project Instructions
 
 ## Purpose
 

@@ -1,14 +1,26 @@
 {
-  "name": "@ayso/db",
+  "name": "@vc/db",
   "version": "0.0.1",
   "private": true,
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "prisma generate && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest --passWithNoTests",
+    "db:generate": "prisma generate",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "devDependencies": {
-    "typescript": "^5.7.0"
+    "@types/node": "^22.20.0",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.8.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.8.0"
   }
 }
