@@ -53,4 +53,4 @@ supabase/.branches
 supabase/.temp
 
 # AI helper session history
-docs/sessions
+__docs/sessions
