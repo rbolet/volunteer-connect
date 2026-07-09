@@ -16,7 +16,8 @@
     "typecheck": "turbo typecheck",
     "check": "prettier --write \"**/*.{ts,tsx,json,md}\" && turbo lint typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "prepare": "husky"
+    "prepare": "husky",
+    "verify:deploy": "node scripts/verify-deploy.mjs"
   },
   "devDependencies": {
     "turbo": "^2.3.0",
