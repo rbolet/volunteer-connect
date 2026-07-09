@@ -34,8 +34,32 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
 
+  api-image-smoke-test:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build api image
+        run: docker build -f apps/api/Dockerfile -t vc-api:ci .
+      - name: Boot container and check health
+        run: |
+          docker run -d --name vc-api-smoke -p 4000:4000 vc-api:ci
+          for i in $(seq 1 10); do
+            if curl -sf http://localhost:4000/health; then
+              echo "API is healthy"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not become healthy in time"
+          docker logs vc-api-smoke
+          exit 1
+      - name: Tear down container
+        if: always()
+        run: docker rm -f vc-api-smoke
+
   deploy-api:
-    needs: migrate-db
+    needs: [migrate-db, api-image-smoke-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
