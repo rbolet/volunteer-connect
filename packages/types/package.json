@@ -7,10 +7,12 @@
   },
   "scripts": {
     "build": "tsc",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest --passWithNoTests"
   },
   "devDependencies": {
+    "eslint": "^9.39.4",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   }

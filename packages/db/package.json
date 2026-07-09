@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "prisma generate && tsc -p tsconfig.build.json",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest --passWithNoTests",
     "db:generate": "prisma generate",
@@ -16,6 +17,7 @@
   "devDependencies": {
     "@types/node": "^22.20.0",
     "dotenv": "^17.4.2",
+    "eslint": "^9.39.4",
     "prisma": "^7.8.0",
     "typescript": "^5.7.0",
     "vitest": "^3.2.7"
