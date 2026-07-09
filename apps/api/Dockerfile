@@ -7,7 +7,7 @@ RUN corepack enable pnpm
 
 FROM base AS installer
 WORKDIR /app
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
@@ -22,7 +22,8 @@ RUN pnpm --filter=@vc/api build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/api/dist ./dist
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=installer /app/node_modules ./node_modules
+COPY --from=installer /app/apps/api/node_modules ./apps/api/node_modules
 EXPOSE 4000
-CMD ["node", "dist/index.js"]
+CMD ["node", "apps/api/dist/index.js"]
