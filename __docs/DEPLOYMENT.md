@@ -8,12 +8,14 @@ Load on demand. Referenced from CLAUDE.md. Not always-on.
 
 ```
 test (turbo lint → typecheck → test)
-  └─ migrate-db (prisma migrate deploy against Supabase)
-       ├─ deploy-api (Railway)
-       └─ deploy-web (Vercel)
+  ├─ migrate-db (prisma migrate deploy against Supabase)
+  │    ├─ deploy-api (Railway)
+  │    └─ deploy-web (Vercel)
+  └─ api-image-smoke-test (builds apps/api Docker image, boots it, curls /health)
+       └─ deploy-api (Railway)
 ```
 
-`deploy-api` and `deploy-web` run in parallel once `migrate-db` succeeds — no ordering dependency between them.
+`deploy-api` needs both `migrate-db` and `api-image-smoke-test`. `deploy-web` only needs `migrate-db`. The smoke-test job exists because `railway up --detach` (used by `deploy-api`) fires the deploy and returns immediately without waiting to confirm it actually booted — a broken Dockerfile or missing runtime dependency would otherwise only surface after a real Railway deploy, not in CI.
 
 ## Required GitHub Repo Secrets
 
@@ -33,6 +35,22 @@ Settings → Secrets and variables → Actions → New repository secret:
 - Railway project with a service for `apps/api` (already has a `Dockerfile`, which Railway builds from)
 - The Supabase project itself
 - **Railway free tier**: deploys can be time-restricted (encountered a "can't deploy until after 8pm" limit this session) — not a bug, just the plan's constraint
+
+## Railway Config (`railway.json`)
+
+Repo root `railway.json` is the source of truth for the `apps/api` Railway service's build/deploy settings, not the dashboard — the dashboard UI has silently failed to persist cleared fields in this project (a "Custom Start/Build Command" kept applying after being blanked out in the UI). Notes:
+
+- `startCommand` / `buildCommand` are deliberately **omitted** so the Dockerfile's own `CMD`/`RUN` steps stay authoritative. Do not add either back without a strong reason — a stray `startCommand` overriding `CMD` is exactly what caused a prior outage (see git history around the Railway 502 debugging if the details are needed).
+- `build.watchPatterns` must include every path the Dockerfile actually depends on, not just `apps/api/**` — it also depends on `packages/db|types|zod`, root `pnpm-lock.yaml`/`pnpm-workspace.yaml`/`package.json`/`tsconfig.base.json`, and `railway.json` itself (so edits to this file trigger a redeploy).
+- `deploy.healthcheckPath` is `/health` (matches the Express route in `apps/api/src/app.ts`).
+- `PORT` is intentionally **not** set here — kept as a Railway dashboard-only environment variable (pinned to `4000`, matching the Dockerfile's `EXPOSE 4000` and the public domain's Networking target port). Railway auto-injects its own dynamic `PORT` if none is set; since the app does `process.env.PORT ?? 4000`, an unpinned `PORT` can drift out of sync with whatever target port the public domain is configured to proxy to, causing the app to be healthy internally but unreachable externally (`connection refused` from Railway's edge). Pinning it removes that failure mode.
+
+## Docker + pnpm Monorepo Layout
+
+`apps/api/Dockerfile` is a multi-stage build; the two things that aren't obvious from reading it alone:
+
+- Any tsconfig that `extends` a root-level file (`apps/api/tsconfig.json` → `../../tsconfig.base.json`) needs that root file explicitly `COPY`'d into the build context — it isn't pulled in implicitly.
+- pnpm's strict linking puts each workspace's production dependencies as symlinks under **that workspace's own** `node_modules` (e.g. `apps/api/node_modules/express -> ../../../node_modules/.pnpm/...`), not hoisted to the repo-root `node_modules`. The final `runner` stage must therefore preserve the `apps/api/` directory structure and copy both `node_modules` (root) and `apps/api/node_modules`, not flatten `dist` + root `node_modules` alone — otherwise the container builds and boots but crashes on the first `require()` of any workspace-scoped dependency.
 
 ## One-Time Migration Bootstrap
 
@@ -87,7 +105,9 @@ Bypass with `git commit --no-verify`.
 
 Reads `DEPLOY_WEB_URL`/`DEPLOY_API_URL` from the root `.env` if not passed inline. Exits non-zero if anything failed; not wired into CI or the pre-commit hook.
 
-## Known Open Items (as of 2026-07-08)
+## Known Open Items (as of 2026-07-09)
 
-- Railway: not yet successfully deployed — blocked by the free-tier deploy timing restriction noted above.
+- All three services (Vercel, Railway, Supabase) are deployed and passing `pnpm verify:deploy`.
 - Supabase: hit a transient `PGRST002` ("could not query the database for the schema cache") 503 at one point. If this recurs, check the dashboard's project status (paused / restoring) before assuming a real bug — free-tier Supabase projects pause on inactivity same as Railway.
+- `api-image-smoke-test` (CI) build/boots the Docker image but doesn't yet exercise it the same way local dev would — see `__docs/NEXT_SESSION.md` for the plan to use Docker locally as the dev environment for `apps/api`.
+- Cross-service connectivity (Vercel → Railway BFF calls, Railway → Supabase) has only been verified via each service's own `/health`/reachability check independently, not an actual end-to-end request through the real BFF path — see `__docs/NEXT_SESSION.md`.
