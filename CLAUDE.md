@@ -13,7 +13,7 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 ## Stack (fixed)
 
 - Monorepo: Turborepo (`apps/web`, `apps/api`, `packages/db`, `packages/types`, `packages/zod`)
-- Frontend: Next.js (App Router), TypeScript, Tailwind CSS → Vercel
+- Frontend: Next.js (App Router), TypeScript, Tailwind CSS v4, shadcn/ui (Radix) → Vercel
 - Backend: Node/Express API, TypeScript, Prisma ORM, Docker → Railway (internal network only, not publicly routable)
 - Data/Auth/Storage: Supabase (Postgres, Supabase Auth via `@supabase/ssr`, Storage)
 - Validation: Zod — shared schemas in `packages/zod`, consumed by both apps
