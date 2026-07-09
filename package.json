@@ -15,12 +15,21 @@
     "test": "turbo test",
     "typecheck": "turbo typecheck",
     "check": "prettier --write \"**/*.{ts,tsx,json,md}\" && turbo lint typecheck",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "prepare": "husky"
   },
   "devDependencies": {
     "turbo": "^2.3.0",
     "typescript": "^5.7.0",
-    "prettier": "^3.4.0"
+    "prettier": "^3.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8"
   },
-  "packageManager": "pnpm@10.17.1"
+  "packageManager": "pnpm@10.17.1",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,json,md}": "prettier --write",
+    "apps/web/**/*.{ts,tsx}": [
+      "pnpm --filter @vc/web exec eslint --fix"
+    ]
+  }
 }
