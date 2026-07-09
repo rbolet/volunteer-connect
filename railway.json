@@ -18,7 +18,7 @@
   "deploy": {
     "runtime": "V2",
     "numReplicas": 1,
-    "sleepApplication": true,
+    "sleepApplication": false,
     "useLegacyStacker": false,
     "ipv6EgressEnabled": false,
     "multiRegionConfig": {
