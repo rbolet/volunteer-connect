@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# TODO: For production, use `turbo prune --scope=@ayso/api` to generate a
+# TODO: For production, use `turbo prune --scope=@vc/api` to generate a
 # minimal monorepo subset before building. See: https://turbo.build/repo/docs/guides/tools/docker
 
 FROM node:22-alpine AS base
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile
 FROM installer AS builder
 COPY apps/api ./apps/api
 COPY packages ./packages
-RUN pnpm --filter=@ayso/api build
+RUN pnpm --filter=@vc/api build
 
 FROM base AS runner
 WORKDIR /app
