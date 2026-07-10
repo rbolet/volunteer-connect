@@ -38,6 +38,7 @@
     "packages/db/**/*.ts": "pnpm --filter @vc/db exec eslint --fix",
     "packages/types/**/*.ts": "pnpm --filter @vc/types exec eslint --fix",
     "packages/zod/**/*.ts": "pnpm --filter @vc/zod exec eslint --fix",
-    "packages/error-utils/**/*.ts": "pnpm --filter @vc/error-utils exec eslint --fix"
+    "packages/error-utils/**/*.ts": "pnpm --filter @vc/error-utils exec eslint --fix",
+    "packages/logger/**/*.ts": "pnpm --filter @vc/logger exec eslint --fix"
   }
 }

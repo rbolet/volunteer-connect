@@ -1,8 +1,9 @@
 import { HealthView, type HealthData } from "./HealthView"
 
 async function getHealth(): Promise<HealthData> {
+  const url = `${process.env.API_INTERNAL_URL ?? "http://localhost:4000"}/health`
   try {
-    const res = await fetch(`${process.env.API_INTERNAL_URL ?? "http://localhost:4000"}/health`, {
+    const res = await fetch(url, {
       cache: "no-store",
     })
     return res.json()
