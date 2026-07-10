@@ -66,12 +66,12 @@ Prisma auto-loads `DATABASE_URL` from `packages/db/.env` (pointed at the real Su
 
 All real `.env` files are gitignored (bare `.env` pattern in `.gitignore` matches at any depth).
 
-| File                    | Holds                                                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `apps/web/.env`         | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_INTERNAL_URL`, `TRUSTED_BFF_SECRET` |
-| `apps/api/.env`         | `PORT`, `DATABASE_URL`, `SUPABASE_SECRET_KEY`, `TRUSTED_BFF_SECRET`                                          |
-| `packages/db/.env`      | `DATABASE_URL` (used by Prisma CLI directly)                                                                 |
-| `.env` (repo root, new) | `DEPLOY_WEB_URL`, `DEPLOY_API_URL` — used only by `scripts/verify-deploy.mjs`. Copy from `.env.example`.     |
+| File                    | Holds                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------------------------- |
+| `apps/web/.env`         | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_URL`, `TRUSTED_BFF_SECRET`      |
+| `apps/api/.env`         | `PORT`, `DATABASE_URL`, `SUPABASE_SECRET_KEY`, `TRUSTED_BFF_SECRET`                                      |
+| `packages/db/.env`      | `DATABASE_URL` (used by Prisma CLI directly)                                                             |
+| `.env` (repo root, new) | `DEPLOY_WEB_URL`, `DEPLOY_API_URL` — used only by `scripts/verify-deploy.mjs`. Copy from `.env.example`. |
 
 `TRUSTED_BFF_SECRET` is set in both `apps/web/.env` and `apps/api/.env` (same value) for the BFF trusted-header pattern — see `CROSSCONTEXT_TODOS.md` for the still-unbuilt forwarding code that will actually use it.
 

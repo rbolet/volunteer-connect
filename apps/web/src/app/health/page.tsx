@@ -10,7 +10,7 @@ const fetchHealth = introspect(async function fetchHealth(url: string): Promise<
 })
 
 async function getHealth(): Promise<HealthData> {
-  const url = `${process.env.API_INTERNAL_URL ?? "http://localhost:4000"}/health`
+  const url = `${process.env.API_URL ?? "http://localhost:4000"}/health`
   try {
     return await fetchHealth(url)
   } catch (err) {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": [
-    "API_INTERNAL_URL",
+    "API_URL",
     "DATABASE_URL",
     "SUPABASE_SECRET_KEY",
     "TRUSTED_BFF_SECRET",
