@@ -65,6 +65,7 @@ model Organization {
   seasons  Season[]
   teams    Team[]
   signups  Signup[]
+  events   Event[]
 
   @@map("organizations")
 }
@@ -117,8 +118,32 @@ model Season {
   org     Organization @relation(fields: [org_id], references: [id])
   teams   Team[]
   signups Signup[]
+  events  Event[]
 
   @@map("seasons")
+}
+
+// Groups the recurring set of signups tied to one real-world occasion (e.g.
+// Friday field prep + Saturday tent duty for one game weekend, a tournament,
+// a registration day) so they can be queried/managed/cloned as a unit instead
+// of admins recreating unrelated Signups every week by hand.
+model Event {
+  id         String    @id @default(cuid())
+  org_id     String
+  season_id  String
+  name       String
+  event_date DateTime
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  created_by String?
+  updated_by String?
+  deleted_at DateTime?
+
+  org     Organization @relation(fields: [org_id], references: [id])
+  season  Season       @relation(fields: [season_id], references: [id])
+  signups Signup[]
+
+  @@map("events")
 }
 
 model Team {
@@ -160,6 +185,7 @@ model Signup {
   id          String       @id @default(cuid())
   org_id      String
   season_id   String
+  event_id    String?
   title       String
   description String?
   mode        SignupMode
@@ -174,6 +200,7 @@ model Signup {
 
   org           Organization         @relation(fields: [org_id], references: [id])
   season        Season               @relation(fields: [season_id], references: [id])
+  event         Event?               @relation(fields: [event_id], references: [id])
   eligibleRoles SignupEligibleRole[]
   slots         SignupSlot[]
 

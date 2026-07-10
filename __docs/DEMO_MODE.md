@@ -2,7 +2,9 @@
 
 Load on demand. Referenced from CLAUDE.md.
 
-**Status: proposed design.** Written before the first real pilot org exists, so this is meant to be the foundation prod multi-org support builds on, not a fork of it. It depends on two pieces of architecture that don't exist yet — [AUTH.md](AUTH.md)'s session resolver and baseline RLS policies (`CROSSCONTEXT_TODOS.md`) — and is written as a forward-looking spec against them rather than an as-built reference. Don't start building the seed script or reset job until both land; building demo isolation before RLS exists would just produce app-layer isolation that looks like real isolation and isn't.
+**Status: proposed design.** Written before the first real pilot org exists, so this is meant to be the foundation prod multi-org support builds on, not a fork of it. It depends on two pieces of architecture that don't exist yet — [AUTH.md](AUTH.md)'s session resolver and baseline RLS policies (`CROSSCONTEXT_TODOS.md`) — and is written as a forward-looking spec against them rather than an as-built reference.
+
+**Deliberate deviation (2026-07-09): RLS is deferred for the initial pilot demo.** Speed to a working public demo currently outweighs defense-in-depth at the DB layer — there's only one real org and no paying customer yet, so org-scoping bugs have no victim. The seed script and reset job are being built now, against app-layer isolation only (whatever the not-yet-built Express/BFF layer enforces), not real RLS. This is an accepted, temporary gap, not a silent one: revisit before either (a) RLS is later added — the demo becomes the natural test that it doesn't break org isolation, or (b) a second real org/paying customer exists, whichever comes first. Don't let this doc's original "don't build ahead of RLS" framing below read as still-current — it described the ideal sequencing, not the one actually being followed right now.
 
 ## Principle
 

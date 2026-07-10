@@ -55,3 +55,4 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 - CLI commands: one-line purpose stated before each command.
 - Implement only what is explicitly scoped in the current task. Do not add files, dependencies, or configuration beyond the stated scope — ask first.
 - Before designing schema/API/UI for a new feature, check DATA_MODEL.md is current; propose updates to it rather than embedding schema details in chat.
+- **Session log** ("make today's session entry"): append to `__docs/sessions/YYYY-MM-DD.md` — one file per calendar date; add new `##` sections to today's file if it already exists rather than creating a second file. Record critical decisions, where things landed, and the actual actions/files changed — not the reasoning or back-and-forth that led there. A one-line "why" is fine for a non-obvious call (e.g. "deferred RLS — pilot speed over defense-in-depth while only one org exists"); skip blow-by-blow deliberation.

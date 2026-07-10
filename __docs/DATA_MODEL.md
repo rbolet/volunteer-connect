@@ -36,15 +36,22 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 **Team**
 
 - id, org_id, season_id (FK → Season), name, team_number (nullable int), color (nullable string)
+- `team_number` and `name` are display/reference labels, not identifiers — neither is DB-unique. AYSO team numbers are typically assigned per division/age-group, so two teams can plausibly share the same number (or name) within one org/season. Always use `id` for lookups; never assume `team_number` or `name` uniqueness in application code or seed/fixture data.
 
 **TeamMembership**
 
 - user_id, team_id, role (`head_coach` | `coach` | `referee` | `volunteer`)
 - Composite key (user_id, team_id, role) — a user can hold multiple roles on the same team, and belong to multiple teams.
 
+**Event**
+
+- id, org_id, season_id (FK → Season), name, event_date
+- Groups the set of Signups tied to one real-world occasion (e.g. Friday field prep + Saturday tent duty for the same game weekend, a tournament, a registration day) so they can be managed/queried/cloned as a unit instead of admins recreating unrelated Signups every week by hand.
+- Optional — a Signup doesn't have to belong to one (e.g. a standalone registration-day signup with no companion signups).
+
 **Signup**
 
-- id, org_id, season_id (FK → Season), title, description, mode (`RANKED_CHOICE` | `DIRECT_CLAIM`)
+- id, org_id, season_id (FK → Season), event_id (nullable FK → Event), title, description, mode (`RANKED_CHOICE` | `DIRECT_CLAIM`)
 - opens_at, closes_at, status (`draft` | `open` | `closed` | `finalized`)
 
 **SignupEligibleRole**

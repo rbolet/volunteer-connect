@@ -25,7 +25,9 @@ Items that span multiple features or layers and need to be implemented once at t
 
 ## RLS Policies — Org Scoping
 
-**Why**: `CLAUDE.md` states "Defense in depth: RLS at DB layer..." as a standing convention, but **no RLS policies exist in the current migration at all** — not even single-org scoping for the one org that exists today. This blocks both real multi-org safety and `DEMO_MODE.md`'s isolation model, which assumes the demo org is protected by the same RLS as any other org (no demo-specific carve-out).
+**Deprioritized for the pilot (2026-07-09):** speed to a working public demo takes priority over defense-in-depth at the DB layer while there's only one real org and no paying customer. `DEMO_MODE.md`'s seed script/reset job are proceeding without this. Revisit before a second real org exists, or before RLS is otherwise picked up — whichever comes first. A concrete migration + mechanism plan was drafted and set aside; ask before restarting it rather than re-deriving from scratch.
+
+**Why** (original rationale, still valid, just not being acted on yet): `CLAUDE.md` states "Defense in depth: RLS at DB layer..." as a standing convention, but **no RLS policies exist in the current migration at all** — not even single-org scoping for the one org that exists today. This blocks both real multi-org safety and `DEMO_MODE.md`'s isolation model, which assumes the demo org is protected by the same RLS as any other org (no demo-specific carve-out).
 
 **What to build** (`packages/db` migration + Supabase):
 
@@ -40,6 +42,14 @@ Items that span multiple features or layers and need to be implemented once at t
 **Why**: No auth code exists yet — no `@supabase/ssr` integration, no session handling, no Next.js middleware. `AUTH.md` proposes a `SessionResolver` interface (Supabase-backed and demo-backed implementations) so this gets built with an adapter boundary from day one, rather than hardcoding Supabase and retrofitting demo mode's password-less path later.
 
 **What to build**: see `AUTH.md` for the full interface, session shape, and both resolver implementations. This blocks `DEMO_MODE.md`'s auth section and the Trusted BFF Header item below (the header payload should carry `AUTH.md`'s `ResolvedSession` shape, not an ad hoc pair).
+
+---
+
+## Response/View-Model Zod Schemas
+
+**Why**: `packages/zod` currently only has write/input schemas (`UserInput`, `SignupInput`, etc. — named with an `Input` suffix specifically to leave the bare entity name free for this). No API endpoints exist yet (`apps/api` is just `/health`), so there's nothing to model a response shape against yet — building one now would mean guessing. This item exists so that gap is a deliberate, tracked deferral, not something forgotten and rediscovered later.
+
+**What to build, once real endpoints are being designed**: purpose-built response schemas per actual screen/use-case (e.g. a signup list view vs. signup detail view legitimately need different shapes — computed fields like slot fill-counts, or `Team` responses needing a computed `totalPoints` since `PointsLedger` deliberately doesn't store a running total). Compose these from shared building blocks (`.pick()`/`.extend()`/`.merge()`) rather than hand-duplicating field lists or just serializing whatever Prisma's `include`/`select` happens to return. Don't reuse the `*Input` schemas for responses — they're missing `id` and any computed/joined fields, and conflating write-shape with read-shape is exactly what the `Input` suffix is meant to avoid.
 
 ---
 

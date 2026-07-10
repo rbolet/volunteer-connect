@@ -17,7 +17,8 @@
     "check": "prettier --write \"**/*.{ts,tsx,json,md}\" && turbo lint typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "prepare": "husky",
-    "verify:deploy": "node scripts/verify-deploy.mjs"
+    "verify:deploy": "node scripts/verify-deploy.mjs",
+    "kitchensink": "pnpm format && pnpm lint && pnpm test && pnpm verify:deploy"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
