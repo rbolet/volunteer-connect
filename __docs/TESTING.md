@@ -109,6 +109,12 @@ pnpm turbo test --filter=api  # Backend tests only
 pnpm playwright test          # E2E (requires dev server running)
 ```
 
+## Seed Script / Fixtures
+
+**Not built yet** — no `prisma/seed.ts`, no `"prisma": {"seed": ...}` entry in `packages/db/package.json`, and `faker-js` (the intended test-data tool per the Stack table above) isn't installed in any workspace yet.
+
+When built, it lives in `packages/db/src/seed/` as composable builder functions (`seedTeamsAndMemberships()`, `seedSignup(mode)`, etc.), not a single monolithic script — designed to serve three consumers with the same code: local dev bootstrap (`prisma db seed`), the demo reset job, and test fixtures. Tests should import individual builders directly rather than hand-rolling per-test fixture data, so a builder bug surfaces in unit tests before it reaches the public demo. Full design in `DEMO_MODE.md` → Seed script.
+
 ## Supabase Local for Integration Tests
 
 ```bash

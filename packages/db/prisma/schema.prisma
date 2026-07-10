@@ -53,6 +53,7 @@ enum SlotResponseStatus {
 model Organization {
   id         String    @id @default(cuid())
   name       String
+  is_demo    Boolean   @default(false)
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   created_by String?
@@ -121,15 +122,17 @@ model Season {
 }
 
 model Team {
-  id         String    @id @default(cuid())
-  org_id     String
-  season_id  String
-  name       String
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  created_by String?
-  updated_by String?
-  deleted_at DateTime?
+  id          String    @id @default(cuid())
+  org_id      String
+  season_id   String
+  name        String
+  team_number Int?
+  color       String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  created_by  String?
+  updated_by  String?
+  deleted_at  DateTime?
 
   org           Organization     @relation(fields: [org_id], references: [id])
   season        Season           @relation(fields: [season_id], references: [id])

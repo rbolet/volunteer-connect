@@ -6,7 +6,7 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 
 ## On-demand Context
 
-- Individual context markdown files can be found in /docs
+- Individual context markdown files can be found in `__docs/`
 - Use these files to minimize token useage by breaking down contexts and tasks
 - Propose updates to these context references as appropriate
 
@@ -18,11 +18,11 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 - Data/Auth/Storage: Supabase (Postgres, Supabase Auth via `@supabase/ssr`, Storage)
 - Validation: Zod — shared schemas in `packages/zod`, consumed by both apps
 - CI/CD: GitHub Actions (lint → test → deploy)
-- Testing: Vitest + RTL + MSW (unit/integration), Playwright (E2E) — see docs/TESTING.md
+- Testing: Vitest + RTL + MSW (unit/integration), Playwright (E2E) — see `__docs/TESTING.md`
 
 ## Architecture
 
-- **BFF pattern**: Next.js API routes use `@supabase/ssr` to validate the Supabase session and forward pre-authenticated `user_id` + `org_id` to Express via trusted internal header. Express never handles raw Supabase tokens.
+- **BFF pattern**: Next.js resolves the session behind a `SessionResolver` interface (see `__docs/AUTH.md`, proposed — not yet implemented) — real sessions via `@supabase/ssr`, demo sessions via a separate password-less resolver scoped to a fixed demo org — and forwards the resolved `user_id` + `org_id` (+ roles) to Express via trusted internal header. Express never handles raw Supabase tokens, and is agnostic to which resolver ran.
 - Express is internal-only (Railway private network) — not directly reachable from the browser.
 - Shared types in `packages/types`; Prisma client + schema in `packages/db`; Zod schemas in `packages/zod`.
 - Defense in depth: RLS at DB layer, Next.js middleware at route layer, Express trusts BFF-validated user context.
@@ -38,7 +38,7 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 
 - Enforce role/team access via Supabase RLS, not frontend checks alone.
 - Defense in depth: RLS at DB layer, Next.js middleware at route layer, Express trusts pre-validated user context — never rely on a single enforcement point.
-- TDD preferred: write failing test first, implement, refactor. See docs/TESTING.md for stack + patterns.
+- TDD preferred: write failing test first, implement, refactor. See `__docs/TESTING.md` for stack + patterns.
 - Prefer enterprise patterns (repository layer, clear separation of concerns) except where complexity burden clearly exceeds benefit for a single developer.
 - MVP scope: solo accounts, no billing. Don't build org billing/multi-tenancy.
 - Any future notification feature: draft message content via Anthropic API (LLM-assisted), admin reviews/sends — don't auto-send.

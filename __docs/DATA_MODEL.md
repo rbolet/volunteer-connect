@@ -18,7 +18,7 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 
 **Organization**
 
-- id, name
+- id, name, is_demo (bool, default false — marks the single seeded demo org; see `DEMO_MODE.md`)
 
 **User**
 
@@ -35,7 +35,7 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 
 **Team**
 
-- id, org_id, season_id (FK → Season), name
+- id, org_id, season_id (FK → Season), name, team_number (nullable int), color (nullable string)
 
 **TeamMembership**
 
@@ -98,6 +98,10 @@ draft → open → closed → [RANKED_CHOICE: admin finalizes assignments] → f
 | View team point totals                | ✓ (all teams)           | ✓ (own teams)                |
 | Create/manage teams                   | ✓                       | —                            |
 | Join/leave a team                     | —                       | ✓ (self-service)             |
+
+## Demo Mode
+
+A permanent public demo is planned as a second `Organization` row (`is_demo = true`), isolated by the same org-scoping/RLS as any real org — not a separate system. See `DEMO_MODE.md` for the full design (auth adapter, seed script, reset job, frontend entry point); not restated here.
 
 ## Deferred (not MVP)
 
