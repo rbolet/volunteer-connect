@@ -54,3 +54,6 @@ supabase/.temp
 
 # AI helper session history
 __docs/sessions
+
+# Local scratch todo list — not scoped/decided enough for the shared docs yet
+__docs/TO_DO_NEXT.md

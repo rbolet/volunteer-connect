@@ -15,6 +15,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @vc/db db:generate
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
