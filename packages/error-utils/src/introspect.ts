@@ -2,7 +2,7 @@ type AnyFn = (...args: unknown[]) => unknown
 
 function prependName(name: string, error: unknown): unknown {
   if (error instanceof Error) {
-    error.message = `${name}: ${error.message}`
+    error.message = `@${name}: ${error.message}`
     return error
   }
   return new Error(`${name}: ${String(error)}`, { cause: error })

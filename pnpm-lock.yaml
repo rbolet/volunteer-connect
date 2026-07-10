@@ -84,6 +84,12 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.49.0
         version: 2.110.1
+      '@vc/error-utils':
+        specifier: workspace:*
+        version: link:../../packages/error-utils
+      '@vc/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
       '@vc/types':
         specifier: workspace:*
         version: link:../../packages/types

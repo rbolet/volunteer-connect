@@ -13,6 +13,8 @@
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.0",
+    "@vc/error-utils": "workspace:*",
+    "@vc/logger": "workspace:*",
     "@vc/types": "workspace:*",
     "@vc/zod": "workspace:*",
     "class-variance-authority": "^0.7.1",
