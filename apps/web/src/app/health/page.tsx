@@ -3,6 +3,7 @@ import { introspect } from "@vc/error-utils"
 import { logger } from "@vc/logger"
 
 const fetchHealth = introspect(async function fetchHealth(url: string): Promise<HealthData> {
+  logger.info(`Fetching health data ...`)
   const res = await fetch(url, {
     cache: "no-store",
   })
