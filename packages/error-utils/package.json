@@ -1,0 +1,19 @@
+{
+  "name": "@vc/error-utils",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.4",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}

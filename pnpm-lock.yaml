@@ -213,6 +213,18 @@ importers:
         specifier: ^3.2.7
         version: 3.2.7(@types/node@22.20.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@1.8.0))(lightningcss@1.32.0)(msw@2.14.7(@types/node@22.20.0)(typescript@5.9.3))(tsx@4.23.0)(yaml@2.9.0)
 
+  packages/error-utils:
+    devDependencies:
+      eslint:
+        specifier: ^9.39.4
+        version: 9.39.4(jiti@2.7.0)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.7(@types/node@22.20.0)(jiti@2.7.0)(jsdom@29.1.1(@noble/hashes@1.8.0))(lightningcss@1.32.0)(msw@2.14.7(@types/node@22.20.0)(typescript@5.9.3))(tsx@4.23.0)(yaml@2.9.0)
+
   packages/types:
     dependencies:
       '@vc/zod':
