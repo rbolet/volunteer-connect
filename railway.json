@@ -5,6 +5,7 @@
     "watchPatterns": [
       "/apps/api/**",
       "/packages/db/**",
+      "/packages/logger/**",
       "/packages/types/**",
       "/packages/zod/**",
       "/pnpm-lock.yaml",

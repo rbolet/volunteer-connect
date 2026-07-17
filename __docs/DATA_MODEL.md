@@ -90,6 +90,7 @@ draft → open → closed → [RANKED_CHOICE: admin finalizes assignments] → f
 - `open`: eligible volunteers submit/edit responses (ranked choices or direct claims) until `closes_at`.
 - `closed`: volunteer edits locked. RANKED_CHOICE → admin manually assigns, resolving conflicts. DIRECT_CLAIM → claims stand as-is; admin confirms completion post-event (may happen after the event date, not necessarily immediately at close).
 - `finalized`: assignments locked, points awarded to PointsLedger on completion confirmation. Volunteers: view-only. Admins: retain edit rights.
+- **Current implementation (2026-07-15)** confirms completions in bulk at the moment of finalizing: every non-declined response is marked `completed` and awarded its slot's points in one transaction. Per-response confirmation (the model described above) is a future refinement. Transitions implemented: draft→open, open→closed, closed→open (reopen), closed→finalized; finalized is terminal (no un-finalize/point clawback).
 
 ## Permission Matrix
 

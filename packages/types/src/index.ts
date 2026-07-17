@@ -19,4 +19,13 @@ export type {
   SignupInput,
   SignupSlotInput,
   SlotResponseInput,
+  CreateSignupInput,
+  SignupStatusChangeInput,
+  SignupListItem,
+  SignupDetail,
+  SignupSlotView,
+  SlotResponseView,
+  TeamWithPoints,
+  MyResponseView,
 } from "@vc/zod"
+export type { ResolvedSession, DemoIdentity, DemoSessionResponse } from "./session"

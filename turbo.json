@@ -3,6 +3,7 @@
   "globalEnv": [
     "API_URL",
     "DATABASE_URL",
+    "DEMO_SESSION_SECRET",
     "SUPABASE_SECRET_KEY",
     "TRUSTED_BFF_SECRET",
     "LOG_LEVEL",

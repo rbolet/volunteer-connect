@@ -21,13 +21,13 @@ test (turbo lint → typecheck → test)
 
 Settings → Secrets and variables → Actions → New repository secret:
 
-| Secret                                | Source                                                                                                                                                  |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_DATABASE_URL`               | Supabase dashboard → Project Settings → Database → Connection string (**direct**, port 5432, not the pooled 6543 one — DDL needs the direct connection) |
-| `RAILWAY_TOKEN`                       | Railway dashboard → Project Settings → Tokens                                                                                                           |
-| `RAILWAY_SERVICE_ID`                  | Railway dashboard → `api` service → Settings → Service ID (or its name)                                                                                 |
-| `VERCEL_TOKEN`                        | Vercel dashboard → Account Settings → Tokens                                                                                                            |
-| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | Run `vercel link` locally in `apps/web` — writes `.vercel/project.json` with both                                                                       |
+| Secret                                | Source                                                                                                                                                                                                                                              |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_DATABASE_URL`               | Supabase dashboard → Project Settings → Database → Connection string — **session pooler, port 5432** (see "Database Connection" below: the direct host is IPv6-only and unreachable from IPv4 runners; the transaction pooler on 6543 can't do DDL) |
+| `RAILWAY_TOKEN`                       | Railway dashboard → Project Settings → Tokens                                                                                                                                                                                                       |
+| `RAILWAY_SERVICE_ID`                  | Railway dashboard → `api` service → Settings → Service ID (or its name)                                                                                                                                                                             |
+| `VERCEL_TOKEN`                        | Vercel dashboard → Account Settings → Tokens                                                                                                                                                                                                        |
+| `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` | Run `vercel link` locally in `apps/web` — writes `.vercel/project.json` with both                                                                                                                                                                   |
 
 ## Prerequisites (provisioned externally, not by this repo)
 
@@ -45,9 +45,19 @@ Repo root `railway.json` is the source of truth for the `apps/api` Railway servi
 - `deploy.healthcheckPath` is `/health` (matches the Express route in `apps/api/src/app.ts`).
 - `PORT` is intentionally **not** set here — kept as a Railway dashboard-only environment variable (pinned to `4000`, matching the Dockerfile's `EXPOSE 4000` and the public domain's Networking target port). Railway auto-injects its own dynamic `PORT` if none is set; since the app does `process.env.PORT ?? 4000`, an unpinned `PORT` can drift out of sync with whatever target port the public domain is configured to proxy to, causing the app to be healthy internally but unreachable externally (`connection refused` from Railway's edge). Pinning it removes that failure mode.
 
+## Database Connection — Session Pooler, Not the Direct Host (2026-07-15)
+
+Supabase's direct connection host (`db.<ref>.supabase.co:5432`) is **IPv6-only**. Any IPv4-only network (this dev machine; Railway with `ipv6EgressEnabled: false` in `railway.json`) cannot reach it at all — `Can't reach database server`, no answer for the A record. Use the **session pooler** URL instead, which is IPv4-compatible and supports DDL/migrations (session mode, port 5432):
+
+```
+postgresql://postgres.<ref>:<password>@aws-1-us-east-2.pooler.supabase.com:5432/postgres
+```
+
+Local `packages/db/.env` / `apps/api/.env` now use this. **Flag for deploy time:** the Railway dashboard's `DATABASE_URL` and the CI `SUPABASE_DATABASE_URL` secret likely still hold the direct URL — they must be switched to the pooler URL (or Railway's IPv6 egress enabled) before the api can query the DB in production; nothing queried the DB at runtime before this session, so this was never exercised. Session pooler on **5432** is fine for migrations/DDL; it's the **transaction** pooler on 6543 that isn't.
+
 ## Docker + pnpm Monorepo Layout
 
-`apps/api/Dockerfile` is a multi-stage build; the two things that aren't obvious from reading it alone:
+`apps/api/Dockerfile` runs the app **from TypeScript source via tsx** (decided 2026-07-15): workspace packages (`@vc/db`, `@vc/zod`, …) export `src/*.ts` directly, which a plain `node dist/` runtime can't resolve — tsx gives dev, vitest, and prod one uniform resolution path. The build stage's gate is `prisma generate` (runtime requirement) + `tsc --noEmit`; no JS is emitted or shipped. Things that aren't obvious from reading it alone:
 
 - Any tsconfig that `extends` a root-level file (`apps/api/tsconfig.json` → `../../tsconfig.base.json`) needs that root file explicitly `COPY`'d into the build context — it isn't pulled in implicitly.
 - pnpm's strict linking puts each workspace's production dependencies as symlinks under **that workspace's own** `node_modules` (e.g. `apps/api/node_modules/express -> ../../../node_modules/.pnpm/...`), not hoisted to the repo-root `node_modules`. The final `runner` stage must therefore preserve the `apps/api/` directory structure and copy both `node_modules` (root) and `apps/api/node_modules`, not flatten `dist` + root `node_modules` alone — otherwise the container builds and boots but crashes on the first `require()` of any workspace-scoped dependency.
@@ -66,14 +76,14 @@ Prisma auto-loads `DATABASE_URL` from `packages/db/.env` (pointed at the real Su
 
 All real `.env` files are gitignored (bare `.env` pattern in `.gitignore` matches at any depth).
 
-| File                    | Holds                                                                                                    |
-| ----------------------- | -------------------------------------------------------------------------------------------------------- |
-| `apps/web/.env`         | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_URL`, `TRUSTED_BFF_SECRET`      |
-| `apps/api/.env`         | `PORT`, `DATABASE_URL`, `SUPABASE_SECRET_KEY`, `TRUSTED_BFF_SECRET`                                      |
-| `packages/db/.env`      | `DATABASE_URL` (used by Prisma CLI directly)                                                             |
-| `.env` (repo root, new) | `DEPLOY_WEB_URL`, `DEPLOY_API_URL` — used only by `scripts/verify-deploy.mjs`. Copy from `.env.example`. |
+| File                    | Holds                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/.env`         | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `API_URL`, `TRUSTED_BFF_SECRET`, `DEMO_SESSION_SECRET` |
+| `apps/api/.env`         | `PORT`, `DATABASE_URL`, `SUPABASE_SECRET_KEY`, `TRUSTED_BFF_SECRET`                                                        |
+| `packages/db/.env`      | `DATABASE_URL` (used by Prisma CLI directly)                                                                               |
+| `.env` (repo root, new) | `DEPLOY_WEB_URL`, `DEPLOY_API_URL` — used only by `scripts/verify-deploy.mjs`. Copy from `.env.example`.                   |
 
-`TRUSTED_BFF_SECRET` is set in both `apps/web/.env` and `apps/api/.env` (same value) for the BFF trusted-header pattern — see `CROSSCONTEXT_TODOS.md` for the still-unbuilt forwarding code that will actually use it.
+`TRUSTED_BFF_SECRET` is set in both `apps/web/.env` and `apps/api/.env` (same value) for the BFF trusted-header pattern — forwarding code built 2026-07-15 (`apps/web/src/lib/api/client.ts` ↔ `apps/api/src/middleware/bff-auth.ts`). `DEMO_SESSION_SECRET` (web only) signs the demo identity cookie and must also be set in Vercel before the demo works when deployed.
 
 **Deployed environments** (Vercel/Railway dashboards) need their own copies of the relevant keys set as environment variables — local `.env` files aren't read at runtime there.
 

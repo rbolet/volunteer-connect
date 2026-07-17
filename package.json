@@ -18,7 +18,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "prepare": "husky",
     "verify:deploy": "node scripts/verify-deploy.mjs",
-    "kitchensink": "pnpm format && pnpm lint && pnpm test && pnpm verify:deploy"
+    "kitchensink": "pnpm format && pnpm lint && pnpm test && pnpm verify:deploy",
+    "test:e2e": "pnpm --filter @vc/web exec playwright test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

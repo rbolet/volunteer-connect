@@ -2,7 +2,12 @@
 
 Load on demand. Referenced from CLAUDE.md and DEMO_MODE.md.
 
-**Status: proposed design, not yet implemented.** No auth code exists in the repo today — no `@supabase/ssr` integration, no session handling, no RLS policies in the deployed schema. This doc is the target architecture, written now because [DEMO_MODE.md](DEMO_MODE.md) needs a session source that isn't Supabase Auth, and retrofitting an adapter boundary after the Supabase-only path is hardcoded would mean touching every downstream consumer twice. Treat this as the auth design to build against, not a record of something already running.
+**Status: demo path implemented (2026-07-15); Supabase path still a stub.** `SessionResolver` + `DemoSessionResolver` live in `apps/web/src/lib/auth/`; `SupabaseSessionResolver` is a stub returning `null` (no `@supabase/ssr` integration yet, no RLS). Implementation resolved the open decisions below as follows:
+
+- **Middleware vs. route handlers — split.** Edge middleware (`apps/web/src/middleware.ts`) does route dispatch + signed-cookie issuance only (Web Crypto HMAC, Edge-safe); full session resolution (DB-backed roles lookup) runs in Node via `getDemoSession()`/`resolverFor()` in `lib/auth/session-resolver.ts`, since Edge can't run Prisma.
+- **Cookie secret — distinct `DEMO_SESSION_SECRET`**, not `TRUSTED_BFF_SECRET`.
+- **Demo org id — resolved by `is_demo = true` DB query**, not a `DEMO_ORG_ID` env var (one source of truth, nothing to provision/drift). The lookup happens in Express (`GET /internal/demo-session?identity=<enum>`, guarded by `TRUSTED_BFF_SECRET`) so Prisma stays out of Next — the web resolver calls that endpoint. Still never derived from request input.
+- **BFF forwarding carries the full `ResolvedSession`** (schema: `resolvedSessionSchema` in `packages/zod/src/session.ts`; the runtime source of truth for the shape below) as the `x-session` header + `x-bff-secret`; Express validates both in `apps/api/src/middleware/bff-auth.ts`.
 
 ## Why an interface, not a Supabase call site
 

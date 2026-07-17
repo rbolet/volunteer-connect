@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./seed/demo-data": "./src/seed/demo-data.ts"
   },
   "scripts": {
     "build": "prisma generate && tsc -p tsconfig.build.json",
@@ -12,18 +13,24 @@
     "test": "vitest run --passWithNoTests",
     "db:generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy"
+    "migrate:deploy": "prisma migrate deploy",
+    "db:seed": "tsx src/seed/run.ts",
+    "db:reset-demo": "tsx src/seed/reset-demo.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
+    "@types/pg": "^8.20.0",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.4",
     "prisma": "^7.8.0",
+    "tsx": "^4.23.0",
     "typescript": "^5.7.0",
     "vitest": "^3.2.7"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@vc/types": "workspace:*"
+    "@vc/types": "workspace:*",
+    "pg": "^8.22.0"
   }
 }

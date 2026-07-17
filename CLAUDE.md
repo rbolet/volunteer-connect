@@ -22,10 +22,10 @@ Portfolio SaaS MVP: AYSO local orgs manage volunteer/coach/referee signups, trac
 
 ## Architecture
 
-- **BFF pattern**: Next.js resolves the session behind a `SessionResolver` interface (see `__docs/AUTH.md`, proposed — not yet implemented) — real sessions via `@supabase/ssr`, demo sessions via a separate password-less resolver scoped to a fixed demo org — and forwards the resolved `user_id` + `org_id` (+ roles) to Express via trusted internal header. Express never handles raw Supabase tokens, and is agnostic to which resolver ran.
-- Express is internal-only (Railway private network) — not directly reachable from the browser.
-- Shared types in `packages/types`; Prisma client + schema in `packages/db`; Zod schemas in `packages/zod`.
-- Defense in depth: RLS at DB layer, Next.js middleware at route layer, Express trusts BFF-validated user context.
+- **BFF pattern**: Next.js resolves the session behind a `SessionResolver` interface (see `__docs/AUTH.md` — demo path implemented 2026-07-15; Supabase path still a stub) — real sessions via `@supabase/ssr` (future), demo sessions via a password-less resolver scoped to a fixed demo org — and forwards the full `ResolvedSession` to Express via trusted internal headers. Express never handles raw Supabase tokens, and is agnostic to which resolver ran.
+- Express is internal-only (Railway private network) — not directly reachable from the browser. Endpoint surface + conventions: `__docs/API.md`.
+- Shared types in `packages/types`; Prisma client + schema in `packages/db` (runtime access only via `createPrismaClient()` — Prisma 7 requires the pg driver adapter); Zod schemas in `packages/zod` (`*Input` write schemas + response/view-model schemas).
+- Defense in depth: RLS at DB layer (deferred for pilot — see `CROSSCONTEXT_TODOS.md`), Next.js middleware at route layer, Express trusts BFF-validated user context.
 
 ## Domain glossary (full schema in DATA_MODEL.md — don't restate it, reference it)
 

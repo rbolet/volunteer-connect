@@ -39,25 +39,19 @@ Items that span multiple features or layers and need to be implemented once at t
 
 ## Auth Session Resolution
 
-**Why**: No auth code exists yet — no `@supabase/ssr` integration, no session handling, no Next.js middleware. `AUTH.md` proposes a `SessionResolver` interface (Supabase-backed and demo-backed implementations) so this gets built with an adapter boundary from day one, rather than hardcoding Supabase and retrofitting demo mode's password-less path later.
-
-**What to build**: see `AUTH.md` for the full interface, session shape, and both resolver implementations. This blocks `DEMO_MODE.md`'s auth section and the Trusted BFF Header item below (the header payload should carry `AUTH.md`'s `ResolvedSession` shape, not an ad hoc pair).
+**Demo path built 2026-07-15** (`apps/web/src/lib/auth/`, `apps/web/src/middleware.ts` — see AUTH.md's updated status block for the as-built decisions). **Remaining**: `SupabaseSessionResolver` is a stub returning `null` — real `@supabase/ssr` integration, sign-in UI, and user provisioning are still to build when real-org auth is picked up.
 
 ---
 
 ## Response/View-Model Zod Schemas
 
-**Why**: `packages/zod` currently only has write/input schemas (`UserInput`, `SignupInput`, etc. — named with an `Input` suffix specifically to leave the bare entity name free for this). No API endpoints exist yet (`apps/api` is just `/health`), so there's nothing to model a response shape against yet — building one now would mean guessing. This item exists so that gap is a deliberate, tracked deferral, not something forgotten and rediscovered later.
-
-**What to build, once real endpoints are being designed**: purpose-built response schemas per actual screen/use-case (e.g. a signup list view vs. signup detail view legitimately need different shapes — computed fields like slot fill-counts, or `Team` responses needing a computed `totalPoints` since `PointsLedger` deliberately doesn't store a running total). Compose these from shared building blocks (`.pick()`/`.extend()`/`.merge()`) rather than hand-duplicating field lists or just serializing whatever Prisma's `include`/`select` happens to return. Don't reuse the `*Input` schemas for responses — they're missing `id` and any computed/joined fields, and conflating write-shape with read-shape is exactly what the `Input` suffix is meant to avoid.
+**Built 2026-07-15** for the initial demo screens: `packages/zod/src/responses.ts` (`SignupListItem`, `SignupDetail`, `TeamWithPoints`, `MyResponseView`) plus `session.ts` (`resolvedSessionSchema`, `demoSessionResponseSchema`), composed from the `*Input` building blocks per the original design. The web BFF re-validates every Express payload against them (`apps/web/src/lib/api/queries.ts`). Extend per-screen as new endpoints appear — the original guidance stands: don't reuse `*Input` schemas for responses.
 
 ---
 
 ## Trusted BFF Header — Wire Up the Forwarding Code
 
-**Why**: `TRUSTED_BFF_SECRET` is now set in both `apps/web/.env` and `apps/api/.env`, but the actual code that forwards the trusted header (Next.js API routes → Express, per the architecture's defense-in-depth pattern) doesn't exist yet. Spans both apps, not scoped to one feature.
+**Built 2026-07-15**, carrying the full `ResolvedSession` per AUTH.md:
 
-**What to build**:
-
-- BFF-side (`apps/web`): code that attaches `TRUSTED_BFF_SECRET` plus the validated `user_id`/`org_id` as an outgoing header on requests to Express. Should carry `AUTH.md`'s full `ResolvedSession` shape (roles included), not just the id pair, so Express doesn't need a second lookup.
-- Express-side (`apps/api`): middleware that validates the header and rejects requests where it's missing or mismatched.
+- BFF-side: `apps/web/src/lib/api/client.ts` attaches `x-bff-secret` + `x-session` on every Express call.
+- Express-side: `apps/api/src/middleware/bff-auth.ts` (`requireBffSecret` — timing-safe compare, fails closed on missing config; `requireSession` — Zod-validates the payload). Supertest coverage in `apps/api/src/__tests__/bff-auth.test.ts`.

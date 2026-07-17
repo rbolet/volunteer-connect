@@ -2,18 +2,18 @@
   "name": "@vc/api",
   "version": "0.0.1",
   "private": true,
-  "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
     "build": "tsc",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "start": "node dist/index.js",
+    "start": "tsx src/index.ts",
     "test": "vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",
     "@vc/db": "workspace:*",
+    "@vc/logger": "workspace:*",
     "@vc/types": "workspace:*",
     "@vc/zod": "workspace:*",
     "express": "^4.21.0"

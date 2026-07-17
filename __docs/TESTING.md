@@ -103,17 +103,20 @@ The BFF trusted-header pattern means Express integration tests verify that the `
 
 ```bash
 # From monorepo root
-pnpm turbo test               # Run all tests across workspace
-pnpm turbo test --filter=web  # Frontend tests only
-pnpm turbo test --filter=api  # Backend tests only
-pnpm playwright test          # E2E (requires dev server running)
+pnpm test                        # All unit/route/component tests (turbo)
+pnpm --filter @vc/api test       # One workspace
+pnpm test:e2e                    # Playwright E2E — boots (or reuses) both dev servers,
+                                 # RESETS the demo org first (global-setup), runs
+                                 # read-only "core" specs before mutating "admin" specs
 ```
+
+Note: a pre-existing failing test in `@vc/error-utils` currently fails root `pnpm test` and cancels downstream turbo test tasks — run per-workspace filters until it's fixed.
 
 ## Seed Script / Fixtures
 
-**Not built yet** — no `prisma/seed.ts`, no `"prisma": {"seed": ...}` entry in `packages/db/package.json`, and `faker-js` (the intended test-data tool per the Stack table above) isn't installed in any workspace yet.
+**Built 2026-07-15** in `packages/db/src/seed/`: hand-curated content (`demo-data.ts`, not faker) turned into rows by `generate.ts` (one transaction, resolves the content's `key` cross-references into FKs), with CLI entries `run.ts` (`pnpm --filter @vc/db db:seed`, refuses to double-seed) and `reset-demo.ts` (`db:reset-demo`, hard-wipe scoped to the demo org then reseed — see `wipe.ts`). Content-integrity tests (`src/seed/__tests__/demo-data.test.ts`) enforce that every cross-reference resolves and DB constraints (unique user+slot, capacity, team membership, role eligibility) hold before anything touches the DB.
 
-When built, it lives in `packages/db/src/seed/` as composable builder functions (`seedTeamsAndMemberships()`, `seedSignup(mode)`, etc.), not a single monolithic script — designed to serve three consumers with the same code: local dev bootstrap (`prisma db seed`), the demo reset job, and test fixtures. Tests should import individual builders directly rather than hand-rolling per-test fixture data, so a builder bug surfaces in unit tests before it reaches the public demo. Full design in `DEMO_MODE.md` → Seed script.
+E2E specs live in `apps/web/e2e/` (`playwright.config.ts` boots both dev servers, or reuses running ones; run via root `pnpm test:e2e`). They run against the seeded demo org and clean up their own mutations.
 
 ## Supabase Local for Integration Tests
 
