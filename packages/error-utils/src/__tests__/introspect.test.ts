@@ -44,7 +44,7 @@ describe("introspect", () => {
     } catch (err) {
       expect(err).toBeInstanceOf(ApiError)
       expect((err as ApiError).status).toBe(404)
-      expect((err as ApiError).message).toBe("fetchUser: record not found")
+      expect((err as ApiError).message).toBe("@fetchUser: record not found")
     }
   })
 
