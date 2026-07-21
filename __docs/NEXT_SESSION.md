@@ -27,6 +27,5 @@ Surfaced 2026-07-20 debugging a demo 500: `ApiError` (`apps/web/src/lib/api/clie
 
 ## 4. Small cleanups queued
 
-- Fix the pre-existing failing test in `@vc/error-utils` (`"@fetchUser: …"` vs `"fetchUser: …"` — one-char message drift); it fails root `pnpm test` and cancels downstream turbo test tasks.
 - Consider a shared `argsIgnorePattern: "^_"` in the root ESLint config (currently a one-off eslint-disable in `apps/api/src/app.ts` for Express's required 4-arity error handler).
 - Railway cron for the demo reset (`db:reset-demo` script is ready; plan support unverified — `DEMO_MODE.md`).
