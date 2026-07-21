@@ -44,7 +44,9 @@ jobs:
         run: docker build -f apps/api/Dockerfile -t vc-api:ci .
       - name: Boot container and check health
         run: |
-          docker run -d --name vc-api-smoke -p 4000:4000 vc-api:ci
+          docker run -d --name vc-api-smoke -p 4000:4000 \
+            -e DATABASE_URL=postgresql://smoke:smoke@localhost:5432/smoke \
+            vc-api:ci
           for i in $(seq 1 10); do
             if curl -sf http://localhost:4000/health; then
               echo "API is healthy"
