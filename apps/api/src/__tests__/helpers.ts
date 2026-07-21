@@ -38,6 +38,13 @@ export function fakeRepos(overrides: {
       changeStatus: reject("signups.changeStatus"),
       ...overrides.signups,
     },
+    signupTemplates: {
+      listForOrg: reject("signupTemplates.listForOrg"),
+      create: reject("signupTemplates.create"),
+      createFromSignup: reject("signupTemplates.createFromSignup"),
+      remove: reject("signupTemplates.remove"),
+      ...overrides.signupTemplates,
+    },
     slotResponses: {
       claim: reject("slotResponses.claim"),
       withdraw: reject("slotResponses.withdraw"),

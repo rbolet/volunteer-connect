@@ -2,6 +2,7 @@ import {
   myResponseViewSchema,
   signupDetailSchema,
   signupListItemSchema,
+  signupTemplateListItemSchema,
   teamWithPointsSchema,
 } from "@vc/zod"
 import type {
@@ -9,6 +10,7 @@ import type {
   ResolvedSession,
   SignupDetail,
   SignupListItem,
+  SignupTemplateListItem,
   TeamWithPoints,
 } from "@vc/types"
 import { ApiError, apiGetJson } from "./client"
@@ -37,6 +39,13 @@ export async function getSignupDetail(
     if (err instanceof ApiError && err.status === 404) return null
     throw err
   }
+}
+
+export async function getSignupTemplates(
+  session: ResolvedSession
+): Promise<SignupTemplateListItem[]> {
+  const body = await apiGetJson<{ templates: unknown }>("/signup-templates", session)
+  return signupTemplateListItemSchema.array().parse(body.templates)
 }
 
 export async function getTeams(session: ResolvedSession): Promise<TeamWithPoints[]> {

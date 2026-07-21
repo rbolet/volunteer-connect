@@ -60,12 +60,13 @@ model Organization {
   updated_by String?
   deleted_at DateTime?
 
-  users    User[]
-  orgRoles OrgRole[]
-  seasons  Season[]
-  teams    Team[]
-  signups  Signup[]
-  events   Event[]
+  users           User[]
+  orgRoles        OrgRole[]
+  seasons         Season[]
+  teams           Team[]
+  signups         Signup[]
+  events          Event[]
+  signupTemplates SignupTemplate[]
 
   @@map("organizations")
 }
@@ -234,6 +235,36 @@ model SignupSlot {
   responses SlotResponse[]
 
   @@map("signup_slots")
+}
+
+// Reusable signup blueprint — an admin can save an existing Signup's shape as
+// a template or build one from scratch, then apply it when creating a new
+// Signup to pre-fill the form instead of starting blank. Unlike
+// Signup/SignupSlot/SignupEligibleRole, slots/eligibleRoles are stored as
+// JSON here rather than relational children: nothing ever needs to FK into a
+// template slot or query "templates containing role X" (the reason those are
+// relational on Signup, via SlotResponse), so the extra tables would buy
+// nothing. Every read/write of these JSON columns goes through the
+// signupTemplateSlotSchema / signupTemplateEligibleRolesSchema Zod schemas in
+// packages/zod, used only inside the templates repository (packages/api/src/
+// repositories/signup-templates.ts) — if this ever needs to become
+// relational, that repo file + a data migration are the only things that change.
+model SignupTemplate {
+  id            String    @id @default(cuid())
+  org_id        String
+  title         String
+  description   String?
+  eligibleRoles Json
+  slots         Json
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  created_by    String?
+  updated_by    String?
+  deleted_at    DateTime?
+
+  org Organization @relation(fields: [org_id], references: [id])
+
+  @@map("signup_templates")
 }
 
 model SlotResponse {

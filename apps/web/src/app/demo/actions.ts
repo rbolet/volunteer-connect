@@ -4,11 +4,18 @@ import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import {
   createSignupSchema,
+  createSignupTemplateSchema,
   demoIdentitySchema,
+  saveSignupAsTemplateSchema,
   signupSlotSchema,
   signupStatusChangeSchema,
 } from "@vc/zod"
-import type { CreateSignupInput, SignupSlotInput, SignupStatusChangeInput } from "@vc/types"
+import type {
+  CreateSignupInput,
+  CreateSignupTemplateInput,
+  SignupSlotInput,
+  SignupStatusChangeInput,
+} from "@vc/types"
 import { ApiError, apiFetch } from "@/lib/api/client"
 import { DEMO_COOKIE, signDemoIdentity } from "@/lib/auth/demo-cookie"
 import { getDemoSession } from "@/lib/auth/session-resolver"
@@ -132,5 +139,40 @@ export async function updateSlot(slotId: string, input: SignupSlotInput): Promis
 
 export async function deleteSlot(slotId: string): Promise<ActionResult> {
   const result = await adminMutation(`/slots/${encodeURIComponent(slotId)}`, { method: "DELETE" })
+  return result.ok ? { ok: true } : result
+}
+
+// --- Signup templates --------------------------------------------------
+
+export async function createSignupTemplate(
+  input: CreateSignupTemplateInput
+): Promise<ActionResultWithId> {
+  const parsed = createSignupTemplateSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: "invalid_input" }
+  const result = await adminMutation("/signup-templates", { method: "POST", body: parsed.data })
+  if (!result.ok) return result
+  const { id } = (await result.response.json()) as { id: string }
+  return { ok: true, id }
+}
+
+export async function saveSignupAsTemplate(
+  signupId: string,
+  title: string
+): Promise<ActionResultWithId> {
+  const parsed = saveSignupAsTemplateSchema.safeParse({ title })
+  if (!parsed.success) return { ok: false, error: "invalid_input" }
+  const result = await adminMutation(`/signups/${encodeURIComponent(signupId)}/save-as-template`, {
+    method: "POST",
+    body: parsed.data,
+  })
+  if (!result.ok) return result
+  const { id } = (await result.response.json()) as { id: string }
+  return { ok: true, id }
+}
+
+export async function deleteSignupTemplate(templateId: string): Promise<ActionResult> {
+  const result = await adminMutation(`/signup-templates/${encodeURIComponent(templateId)}`, {
+    method: "DELETE",
+  })
   return result.ok ? { ok: true } : result
 }

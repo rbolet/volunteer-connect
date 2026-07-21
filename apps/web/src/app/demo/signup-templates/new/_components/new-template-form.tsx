@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import type { SignupTemplateListItem, TeamRole } from "@vc/types"
+import type { TeamRole } from "@vc/types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { createSignup } from "../../../actions"
+import { createSignupTemplate } from "../../../actions"
 
 const ROLE_OPTIONS: { value: TeamRole; label: string }[] = [
   { value: "volunteer", label: "Volunteer" },
@@ -25,13 +25,9 @@ interface SlotDraft {
 
 const EMPTY_SLOT: SlotDraft = { label: "", pointValue: 1, capacity: 1 }
 
-export interface NewSignupFormProps {
-  templates?: SignupTemplateListItem[]
-}
-
-// Creates a draft DIRECT_CLAIM signup (mode/status are server-set); the admin
-// opens it from the detail page when it's ready.
-export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
+// Builds a reusable template from scratch (see NewSignupForm for the
+// equivalent signup-creation flow this mirrors).
+export function NewTemplateForm() {
   const router = useRouter()
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -39,17 +35,6 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
   const [slots, setSlots] = useState<SlotDraft[]>([{ ...EMPTY_SLOT }])
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
-
-  // Populates the form's own state from an already-fetched template — no
-  // extra round trip, and the admin can still edit anything before submit.
-  function applyTemplate(templateId: string) {
-    const template = templates.find((t) => t.id === templateId)
-    if (!template) return
-    setTitle(template.title)
-    setDescription(template.description ?? "")
-    setRoles(template.eligibleRoles)
-    setSlots(template.slots.map((s) => ({ ...s })))
-  }
 
   function toggleRole(role: TeamRole, checked: boolean) {
     setRoles((prev) => (checked ? [...prev, role] : prev.filter((r) => r !== role)))
@@ -68,61 +53,36 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
   function submit() {
     setError(null)
     startTransition(async () => {
-      const result = await createSignup({
+      const result = await createSignupTemplate({
         title: title.trim(),
         description: description.trim() === "" ? null : description.trim(),
         eligibleRoles: roles,
         slots,
       })
       if (!result.ok) {
-        setError(
-          result.error === "no_active_season"
-            ? "No active season exists to attach this signup to."
-            : "Something went wrong — check the form and try again."
-        )
+        setError("Something went wrong — check the form and try again.")
         return
       }
-      router.push(`/demo/signups/${result.id}`)
+      router.push("/demo/signup-templates")
     })
   }
 
   return (
     <div className="max-w-2xl space-y-6">
-      {templates.length > 0 && (
-        <div className="space-y-2">
-          <Label htmlFor="signup-template">Start from a template</Label>
-          <select
-            id="signup-template"
-            defaultValue=""
-            className="h-8 w-full max-w-xs rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-            onChange={(e) => {
-              if (e.target.value) applyTemplate(e.target.value)
-            }}
-          >
-            <option value="">Blank</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <div className="space-y-2">
-        <Label htmlFor="signup-title">Title</Label>
+        <Label htmlFor="template-title">Title</Label>
         <Input
-          id="signup-title"
+          id="template-title"
           value={title}
-          placeholder="e.g. Snack Shack — Saturday"
+          placeholder="e.g. Saturday Tent Duty"
           onChange={(e) => setTitle(e.target.value)}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="signup-description">Description (optional)</Label>
+        <Label htmlFor="template-description">Description (optional)</Label>
         <Textarea
-          id="signup-description"
+          id="template-description"
           value={description}
           rows={3}
           onChange={(e) => setDescription(e.target.value)}
@@ -135,11 +95,11 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
           {ROLE_OPTIONS.map((role) => (
             <div key={role.value} className="flex items-center gap-2">
               <Checkbox
-                id={`role-${role.value}`}
+                id={`template-role-${role.value}`}
                 checked={roles.includes(role.value)}
                 onCheckedChange={(checked) => toggleRole(role.value, checked === true)}
               />
-              <Label htmlFor={`role-${role.value}`}>{role.label}</Label>
+              <Label htmlFor={`template-role-${role.value}`}>{role.label}</Label>
             </div>
           ))}
         </div>
@@ -150,22 +110,22 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
         {slots.map((slot, index) => (
           <div key={index} className="flex flex-wrap items-end gap-2">
             <div className="min-w-0 grow">
-              <Label htmlFor={`new-slot-${index}-label`} className="text-xs">
+              <Label htmlFor={`template-slot-${index}-label`} className="text-xs">
                 Label
               </Label>
               <Input
-                id={`new-slot-${index}-label`}
+                id={`template-slot-${index}-label`}
                 value={slot.label}
-                placeholder="e.g. Snack Shack 8:00–10:00 AM"
+                placeholder="e.g. Tent 8:00–10:00 AM"
                 onChange={(e) => setSlot(index, { label: e.target.value })}
               />
             </div>
             <div className="w-20">
-              <Label htmlFor={`new-slot-${index}-points`} className="text-xs">
+              <Label htmlFor={`template-slot-${index}-points`} className="text-xs">
                 Points
               </Label>
               <Input
-                id={`new-slot-${index}-points`}
+                id={`template-slot-${index}-points`}
                 type="number"
                 min={0}
                 value={slot.pointValue}
@@ -173,11 +133,11 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
               />
             </div>
             <div className="w-20">
-              <Label htmlFor={`new-slot-${index}-capacity`} className="text-xs">
+              <Label htmlFor={`template-slot-${index}-capacity`} className="text-xs">
                 Seats
               </Label>
               <Input
-                id={`new-slot-${index}-capacity`}
+                id={`template-slot-${index}-capacity`}
                 type="number"
                 min={1}
                 value={slot.capacity}
@@ -206,11 +166,8 @@ export function NewSignupForm({ templates = [] }: NewSignupFormProps) {
 
       <div className="flex items-center gap-3">
         <Button disabled={!valid || isPending} onClick={submit}>
-          {isPending ? "Creating…" : "Create draft signup"}
+          {isPending ? "Saving…" : "Save template"}
         </Button>
-        <span className="text-xs text-muted-foreground">
-          Created as a draft — open it when it&apos;s ready for volunteers.
-        </span>
       </div>
       {error && (
         <p role="alert" className="text-sm text-destructive">

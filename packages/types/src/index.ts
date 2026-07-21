@@ -27,5 +27,9 @@ export type {
   SlotResponseView,
   TeamWithPoints,
   MyResponseView,
+  SignupTemplateSlot,
+  CreateSignupTemplateInput,
+  SaveSignupAsTemplateInput,
+  SignupTemplateListItem,
 } from "@vc/zod"
 export type { ResolvedSession, DemoIdentity, DemoSessionResponse } from "./session"

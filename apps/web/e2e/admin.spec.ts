@@ -92,3 +92,43 @@ test("non-admin identities get no admin surface", async ({ page }) => {
   const res = await page.goto("/demo/signups/new")
   expect(res!.status()).toBe(404)
 })
+
+const TEMPLATE_TITLE = "Referee Tent Duty"
+const TEMPLATE_SLOT = "Tent 8:00–10:00 AM"
+
+test("admin saves a signup as a template, applies it, then deletes the template", async ({
+  page,
+}) => {
+  await page.goto("/demo/dashboard")
+  await switchIdentity(page, "Admin")
+
+  // --- Create a source signup to derive the template from ---
+  await page.goto("/demo/signups/new")
+  await page.getByLabel("Title").fill(TEMPLATE_TITLE)
+  await page.locator("#new-slot-0-label").fill(TEMPLATE_SLOT)
+  await page.getByRole("button", { name: "Create draft signup" }).click()
+  await expect(page.getByRole("heading", { name: TEMPLATE_TITLE })).toBeVisible()
+
+  // --- Save it as a template ---
+  await page.getByRole("button", { name: "Save as template" }).click()
+  await page.getByLabel("Template title").fill(TEMPLATE_TITLE)
+  await page.getByRole("button", { name: "Save template" }).click()
+  await expect(page.getByText("Saved as template.")).toBeVisible()
+
+  // --- Confirm it's listed on the templates page ---
+  await page.goto("/demo/signup-templates")
+  await expect(page.getByText(TEMPLATE_TITLE)).toBeVisible()
+
+  // --- Apply it from the New Signup form; fields pre-fill and stay editable ---
+  await page.goto("/demo/signups/new")
+  await page.getByLabel("Start from a template").selectOption({ label: TEMPLATE_TITLE })
+  await expect(page.getByLabel("Title")).toHaveValue(TEMPLATE_TITLE)
+  await expect(page.locator("#new-slot-0-label")).toHaveValue(TEMPLATE_SLOT)
+  await page.getByRole("button", { name: "Create draft signup" }).click()
+  await expect(page.getByRole("heading", { name: TEMPLATE_TITLE })).toBeVisible()
+
+  // --- Delete the template ---
+  await page.goto("/demo/signup-templates")
+  await page.getByRole("button", { name: "Delete" }).click()
+  await expect(page.getByText(TEMPLATE_TITLE)).toHaveCount(0)
+})

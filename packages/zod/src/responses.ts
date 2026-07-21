@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { signupSchema } from "./signup"
 import { signupSlotSchema } from "./signup-slot"
+import { signupTemplateEligibleRolesSchema, signupTemplateSlotSchema } from "./signup-template"
 import { teamSchema } from "./team"
 import { signupStatusSchema, slotResponseStatusSchema, teamRoleSchema } from "./enums"
 
@@ -55,6 +56,20 @@ export const signupDetailSchema = signupListItemSchema.extend({
   slots: z.array(signupSlotViewSchema),
 })
 export type SignupDetail = z.infer<typeof signupDetailSchema>
+
+// --- Signup templates --------------------------------------------------------
+
+// Returns full content, not a lean summary — template counts are small for a
+// pilot-scale org, so the picker can populate the New Signup form straight
+// from the list response with no second fetch.
+export const signupTemplateListItemSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().nullable(),
+  eligibleRoles: signupTemplateEligibleRolesSchema,
+  slots: z.array(signupTemplateSlotSchema),
+})
+export type SignupTemplateListItem = z.infer<typeof signupTemplateListItemSchema>
 
 // --- Teams -----------------------------------------------------------------
 

@@ -1,5 +1,10 @@
 import { Router } from "express"
-import { createSignupSchema, signupSlotSchema, signupStatusChangeSchema } from "@vc/zod"
+import {
+  createSignupSchema,
+  saveSignupAsTemplateSchema,
+  signupSlotSchema,
+  signupStatusChangeSchema,
+} from "@vc/zod"
 import type { ResolvedSession, SignupDetail } from "@vc/types"
 import type { Repos } from "../repositories"
 import { asyncHandler } from "../lib/async-handler"
@@ -115,6 +120,30 @@ export function signupsRouter(repos: Repos): Router {
       })
       if (!result.ok) {
         res.status(result.reason === "not_found" ? 404 : 409).json({ error: result.reason })
+        return
+      }
+      res.status(201).json({ id: result.id })
+    })
+  )
+
+  router.post(
+    "/:id/save-as-template",
+    requireAdmin,
+    asyncHandler(async (req, res) => {
+      const body = saveSignupAsTemplateSchema.safeParse(req.body)
+      if (!body.success) {
+        res.status(400).json({ error: "invalid_body" })
+        return
+      }
+      const session = req.session!
+      const result = await repos.signupTemplates.createFromSignup({
+        orgId: session.org_id,
+        adminId: session.user_id,
+        signupId: req.params.id,
+        title: body.data.title,
+      })
+      if (!result.ok) {
+        res.status(404).json({ error: result.reason })
         return
       }
       res.status(201).json({ id: result.id })

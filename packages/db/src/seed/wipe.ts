@@ -16,6 +16,7 @@ export async function wipeDemoOrg(prisma: PrismaClient, orgId: string): Promise<
       await tx.signupSlot.deleteMany({ where: { signup: { org_id: orgId } } })
       await tx.signupEligibleRole.deleteMany({ where: { signup: { org_id: orgId } } })
       await tx.signup.deleteMany({ where: { org_id: orgId } })
+      await tx.signupTemplate.deleteMany({ where: { org_id: orgId } })
       await tx.event.deleteMany({ where: { org_id: orgId } })
       await tx.teamMembership.deleteMany({ where: { team: { org_id: orgId } } })
       await tx.team.deleteMany({ where: { org_id: orgId } })

@@ -15,6 +15,7 @@ import { formatDate } from "@/lib/utils/format"
 import { SignupStatusBadge } from "../../_components/status-badge"
 import { AdminStatusControls, type AwardSummary } from "./_components/admin-status-controls"
 import { ClaimCell } from "./_components/claim-cell"
+import { SaveAsTemplateButton } from "./_components/save-as-template-button"
 import { SlotEditor } from "./_components/slot-editor"
 
 const ROLE_LABELS: Record<string, string> = {
@@ -87,11 +88,14 @@ export default async function SignupDetailPage({ params }: { params: Promise<{ i
       </div>
 
       {isAdmin && (
-        <AdminStatusControls
-          signupId={signup.id}
-          status={signup.status}
-          awardSummary={awardSummary}
-        />
+        <div className="flex flex-wrap items-start gap-3">
+          <AdminStatusControls
+            signupId={signup.id}
+            status={signup.status}
+            awardSummary={awardSummary}
+          />
+          <SaveAsTemplateButton signupId={signup.id} signupTitle={signup.title} />
+        </div>
       )}
 
       <Table>

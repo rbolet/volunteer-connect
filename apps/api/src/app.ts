@@ -5,6 +5,7 @@ import { requireBffSecret, requireSession } from "./middleware/bff-auth"
 import { internalRouter } from "./routes/internal"
 import { meRouter } from "./routes/me"
 import { signupsRouter } from "./routes/signups"
+import { signupTemplatesRouter } from "./routes/signup-templates"
 import { slotResponsesRouter } from "./routes/slot-responses"
 import { slotsRouter } from "./routes/slots"
 import { teamsRouter } from "./routes/teams"
@@ -26,6 +27,7 @@ export function createApp(repos: Repos): Application {
   // …and everything below that additionally requires a resolved session.
   app.use(requireSession)
   app.use("/signups", signupsRouter(repos))
+  app.use("/signup-templates", signupTemplatesRouter(repos))
   app.use("/slots", slotsRouter(repos))
   app.use("/slot-responses", slotResponsesRouter(repos))
   app.use("/teams", teamsRouter(repos))

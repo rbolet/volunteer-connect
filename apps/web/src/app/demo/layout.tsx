@@ -47,6 +47,14 @@ export default async function DemoLayout({ children }: { children: ReactNode }) 
           >
             Teams
           </Link>
+          {demo.session.org_roles.includes("admin") && (
+            <Link
+              href="/demo/signup-templates"
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Templates
+            </Link>
+          )}
         </nav>
       </header>
       <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
