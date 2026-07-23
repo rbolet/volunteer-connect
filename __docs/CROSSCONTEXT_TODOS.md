@@ -49,6 +49,12 @@ Items that span multiple features or layers and need to be implemented once at t
 
 ---
 
+## Deployed-Chain Verification — Automated Deep Check
+
+**Deferred (2026-07-23):** manual testing confirmed the deployed chain (Vercel → Railway → Supabase) works — reads, writes, admin actions — but `scripts/verify-deploy.mjs` still only checks each service in isolation, with no automated version of that manual pass. A concrete plan (new gated diagnostic route in `apps/web`, a fourth `verify-deploy.mjs` check, a post-deploy CI job) was drafted and set aside — not built because it requires a new env var (`DEPLOY_CHECK_SECRET`) to track, which wasn't wanted yet. Full design: `DEPLOY_CHAIN_VERIFICATION_PLAN.md`. Ask before restarting rather than re-deriving from scratch.
+
+---
+
 ## Trusted BFF Header — Wire Up the Forwarding Code
 
 **Built 2026-07-15**, carrying the full `ResolvedSession` per AUTH.md:

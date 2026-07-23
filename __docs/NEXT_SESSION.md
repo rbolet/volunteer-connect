@@ -2,15 +2,11 @@
 
 Working notes for the next session to pick up. Not a durable reference doc — clear out/fold into `CROSSCONTEXT_TODOS.md` or a feature task once acted on.
 
-## 1. Deployed-chain verification (local chain is now covered)
+## 1. Deployed-chain verification (manually confirmed 2026-07-23; automated version deferred)
 
-The 2026-07-15 session built the BFF→Express→Supabase chain and the Playwright E2E suite exercises it fully **locally** (`pnpm test:e2e`). What remains is verifying the _deployed_ chain, which is known-broken until three env changes land (see `DEPLOYMENT.md` → Database Connection):
+The three env changes flagged in the 2026-07-15 session (Railway/CI pooler URL, Vercel `DEMO_SESSION_SECRET`, Vercel `API_URL`) are live and correct — confirmed 2026-07-23 by manually exercising the deployed app: reads (DB-backed views), writes (claim/withdraw), and admin actions (role switching) all check out against the real Vercel → Railway → Supabase chain.
 
-- Railway dashboard `DATABASE_URL` and the CI `SUPABASE_DATABASE_URL` secret must switch to the **session pooler** URL (`aws-1-us-east-2.pooler.supabase.com:5432`) — the direct `db.<ref>.supabase.co` host is IPv6-only and Railway has `ipv6EgressEnabled: false`.
-- Vercel needs `DEMO_SESSION_SECRET` set (new env var for the demo cookie).
-- Vercel's `API_URL` must point at the Railway service (currently only local).
-
-Then extend `scripts/verify-deploy.mjs` (or a deployed-mode Playwright run) to drive one real request through Vercel → Railway → Supabase rather than checking each service in isolation.
+`scripts/verify-deploy.mjs` still only checks each service in isolation (Vercel health redirect, Railway `/health`, Supabase via PostgREST) — no automated version of the manual check above exists. A concrete plan to close that gap was drafted 2026-07-23 and **deliberately deferred** (it needs a new `DEPLOY_CHECK_SECRET` env var, which wasn't wanted yet) — see `CROSSCONTEXT_TODOS.md` → "Deployed-Chain Verification" and the full design in `DEPLOY_CHAIN_VERIFICATION_PLAN.md`. Not actively queued for next session; pick up only if/when the env-var tradeoff is revisited.
 
 ## 2. Docker as local dev environment for `apps/api`
 
