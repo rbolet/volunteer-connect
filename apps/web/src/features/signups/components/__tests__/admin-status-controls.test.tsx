@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { AdminStatusControls, type AdminStatusControlsProps } from "../admin-status-controls"
 
 const { changeSignupStatus } = vi.hoisted(() => ({ changeSignupStatus: vi.fn() }))
-vi.mock("../../../../actions", () => ({ changeSignupStatus }))
+vi.mock("@/features/signups/actions", () => ({ changeSignupStatus }))
 
 function props(overrides: Partial<AdminStatusControlsProps> = {}): AdminStatusControlsProps {
   return {

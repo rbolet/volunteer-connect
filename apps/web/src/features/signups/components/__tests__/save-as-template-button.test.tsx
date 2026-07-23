@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { SaveAsTemplateButton } from "../save-as-template-button"
 
 const { saveSignupAsTemplate } = vi.hoisted(() => ({ saveSignupAsTemplate: vi.fn() }))
-vi.mock("../../../../actions", () => ({ saveSignupAsTemplate }))
+vi.mock("@/features/signup-templates/actions", () => ({ saveSignupAsTemplate }))
 
 beforeEach(() => {
   saveSignupAsTemplate.mockReset().mockResolvedValue({ ok: true, id: "template_new" })

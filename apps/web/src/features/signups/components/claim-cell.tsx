@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
-import { claimSlot, withdrawResponse } from "../../../actions"
+import { claimSlot, withdrawResponse } from "@/features/signups/actions"
 
 const ERROR_MESSAGES: Record<string, string> = {
   slot_full: "This slot just filled up.",

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { addSlot, deleteSlot, updateSlot } from "../../../actions"
+import { addSlot, deleteSlot, updateSlot } from "@/features/signups/actions"
 
 const ERROR_MESSAGES: Record<string, string> = {
   signup_not_editable: "Slots can't be edited once the signup is closed.",

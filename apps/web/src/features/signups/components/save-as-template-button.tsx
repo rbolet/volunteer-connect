@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { saveSignupAsTemplate } from "../../../actions"
+import { saveSignupAsTemplate } from "@/features/signup-templates/actions"
 
 export interface SaveAsTemplateButtonProps {
   signupId: string

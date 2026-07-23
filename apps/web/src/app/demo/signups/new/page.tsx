@@ -1,8 +1,7 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { getSignupTemplates } from "@/lib/api/queries"
 import { getDemoSession } from "@/lib/auth/session-resolver"
-import { NewSignupForm } from "./_components/new-signup-form"
+import { NewSignupView } from "@/features/signups/new-signup-view"
 
 export default async function NewSignupPage() {
   const demo = await getDemoSession()
@@ -11,22 +10,5 @@ export default async function NewSignupPage() {
   if (!demo.session.org_roles.includes("admin")) notFound()
 
   const templates = await getSignupTemplates(demo.session)
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <Link
-          href="/demo/signups"
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          ← All signups
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">New signup</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Direct-claim: volunteers grab specific slots first-come, first-served.
-        </p>
-      </div>
-      <NewSignupForm templates={templates} />
-    </div>
-  )
+  return <NewSignupView templates={templates} />
 }

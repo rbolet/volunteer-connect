@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
-import Link from "next/link"
 import { getDemoSession } from "@/lib/auth/session-resolver"
+import { AppShell } from "@/components/shared/app-shell"
 import { DemoBanner } from "./_components/demo-banner"
 
 // The demo banner + switcher are driven by session.source here, in one place
@@ -24,40 +24,11 @@ export default async function DemoLayout({ children }: { children: ReactNode }) 
   }
 
   return (
-    <div className="min-h-screen">
-      {demo.session.source === "demo" && <DemoBanner demo={demo} />}
-      <header className="border-b">
-        <nav className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-6 gap-y-1 px-6 py-3">
-          <span className="font-semibold">Volunteer Connect</span>
-          <Link
-            href="/demo/dashboard"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/demo/signups"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Signups
-          </Link>
-          <Link
-            href="/demo/teams"
-            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Teams
-          </Link>
-          {demo.session.org_roles.includes("admin") && (
-            <Link
-              href="/demo/signup-templates"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Templates
-            </Link>
-          )}
-        </nav>
-      </header>
-      <main className="mx-auto max-w-5xl px-6 py-8">{children}</main>
-    </div>
+    <AppShell
+      orgRoles={demo.session.org_roles}
+      banner={demo.session.source === "demo" ? <DemoBanner demo={demo} /> : undefined}
+    >
+      {children}
+    </AppShell>
   )
 }

@@ -6,7 +6,7 @@ import type { SignupTemplateListItem } from "@vc/types"
 import { NewSignupForm } from "../new-signup-form"
 
 const { createSignup } = vi.hoisted(() => ({ createSignup: vi.fn() }))
-vi.mock("../../../../actions", () => ({ createSignup }))
+vi.mock("@/features/signups/actions", () => ({ createSignup }))
 
 const { useRouter } = vi.hoisted(() => ({ useRouter: vi.fn() }))
 vi.mock("next/navigation", () => ({ useRouter }))

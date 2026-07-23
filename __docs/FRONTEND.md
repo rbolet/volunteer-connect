@@ -8,9 +8,11 @@ shadcn/ui, built on **Radix primitives** (`shadcn init -b radix`, not Base UI). 
 
 Vendored so far (2026-07-15): `button`, `card`, `badge`, `table`, `separator`, `input`, `label`, `checkbox`, `textarea`. Add more via `shadcn add <component>`; keep the set minimal — only what's actually used.
 
-**Gotcha — `CardTitle` renders a `div`, not a heading.** For real heading semantics (and honest `getByRole("heading")` tests), nest an `<h2>` inside it (see `demo/dashboard/page.tsx`).
+**Gotcha — `CardTitle` renders a `div`, not a heading.** For real heading semantics (and honest `getByRole("heading")` tests), nest an `<h2>` inside it (see `features/dashboard/dashboard-view.tsx`).
 
 ## Directory Structure
+
+**Route glue vs. feature code.** `app/demo/**/page.tsx` files are intentionally thin: resolve the session (`getDemoSession()`), fetch data via `lib/api/queries.ts`, and render a `*-view.tsx` component from `features/`. Only things that are genuinely demo-only — the banner, the "view as" switcher, the unseeded-org fallback — live under `app/demo/`. Everything else (the dashboard, signups, teams, signup-templates UI and their server actions) lives in `features/`, so it isn't tied to the `/demo` URL prefix by folder name, only by which route currently imports it. This split matters because `/demo/*` is the only reachable route tree today (`resolverFor()` dispatches everything else to a stubbed, always-`null` `supabaseSessionResolver` — see AUTH.md); once real auth lands, a second route tree will import these same `features/` modules rather than duplicating them (see `__docs/plans/REAL_AUTH_ROUTE_TREE.md` for that follow-up — routing/dispatch changes only, no further file moves needed here).
 
 ```
 apps/web/src/
@@ -19,17 +21,29 @@ apps/web/src/
     ui/            # shadcn-generated primitives — CLI-owned/vendored, don't hand-edit,
                     # update via `shadcn add --overwrite`
     shared/         # hand-built reusable compositions across features, built from ui/ primitives
+                    # (app-shell.tsx = nav/header; status-badge.tsx = signup/response badges)
+  features/
+    dashboard/      # dashboard-view.tsx
+    teams/          # teams-view.tsx
+    signups/        # actions.ts, signups-list-view.tsx, signup-detail-view.tsx,
+                    # new-signup-view.tsx, components/ (admin-status-controls, claim-cell,
+                    # slot-editor, new-signup-form, save-as-template-button) + components/__tests__/
+    signup-templates/  # actions.ts, template-list-view.tsx, new-template-view.tsx,
+                    # components/ (template-list, new-template-form)
   app/
     page.tsx        # landing → links to /demo (the old /health redirect is gone; /health still exists)
-    demo/           # the app shell: layout (banner + view-as switcher), actions.ts (all server
-                    # actions), dashboard/, signups/ (+ new/, [id]/), teams/
+    demo/           # thin route entries only: layout.tsx (banner + AppShell), actions.ts
+                    # (switchIdentity only), _components/demo-banner.tsx, dashboard/page.tsx,
+                    # signups/ (+ new/, [id]/), signup-templates/ (+ new/), teams/page.tsx
     <route>/
       _components/  # route/feature-scoped components, not reused elsewhere
                     # (leading underscore = excluded from Next.js routing)
   hooks/            # shared hooks
   lib/
     api/            # client.ts (server-only BFF→Express fetch, attaches trusted headers),
-                    # queries.ts (read queries, re-validated against @vc/zod response schemas)
+                    # queries.ts (read queries, re-validated against @vc/zod response schemas),
+                    # mutations.ts (adminMutation() — shared write-side helper used by
+                    # features/*/actions.ts)
     auth/           # demo-cookie.ts (Web Crypto HMAC, Edge+Node), session-resolver.ts
     utils/          # cn() helper etc.; format.ts (date display)
 ```

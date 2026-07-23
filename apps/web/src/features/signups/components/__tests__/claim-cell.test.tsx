@@ -8,7 +8,7 @@ const { claimSlot, withdrawResponse } = vi.hoisted(() => ({
   claimSlot: vi.fn(),
   withdrawResponse: vi.fn(),
 }))
-vi.mock("../../../../actions", () => ({ claimSlot, withdrawResponse }))
+vi.mock("@/features/signups/actions", () => ({ claimSlot, withdrawResponse }))
 
 function props(overrides: Partial<ClaimCellProps> = {}): ClaimCellProps {
   return {

@@ -41,6 +41,8 @@ Items that span multiple features or layers and need to be implemented once at t
 
 **Demo path built 2026-07-15** (`apps/web/src/lib/auth/`, `apps/web/src/middleware.ts` — see AUTH.md's updated status block for the as-built decisions). **Remaining**: `SupabaseSessionResolver` is a stub returning `null` — real `@supabase/ssr` integration, sign-in UI, and user provisioning are still to build when real-org auth is picked up.
 
+**Also blocked on this**: the `/demo/*`-prefixed frontend route tree becoming a single shared tree (cookie-based resolver dispatch instead of path-based, `/demo` reduced to a pure entry-point redirect). `apps/web/src/features/` was already split out of `app/demo/` in the 2026-07-23 reorg so this is routing-only work when picked up — full plan in `__docs/plans/REAL_AUTH_ROUTE_TREE.md`.
+
 ---
 
 ## Response/View-Model Zod Schemas

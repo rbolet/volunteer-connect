@@ -64,6 +64,8 @@ everything else → SupabaseSessionResolver
 
 This is the entire demo/prod boundary. Because it's a route-based dispatch evaluated server-side in middleware, there is no code path where a request outside `/demo/*` can end up with a demo session, and no code path where `/demo/*` can end up with a real one.
 
+**This path-based dispatch is expected to change once `SupabaseSessionResolver` is real** (see `__docs/plans/REAL_AUTH_ROUTE_TREE.md`): the planned end state is a single route tree (`/dashboard`, `/teams`, etc.) with `/demo` as a pure entry point that sets a signed cookie and redirects in, and `resolverFor()` dispatching on cookie validity instead of URL prefix. Not started — blocked on this stub being implemented first. The frontend code (`apps/web/src/features/`) was already reorganized in anticipation of this so that UI/business logic wouldn't need to move again; only the routing/dispatch layer described here is left. See `__docs/FRONTEND.md`'s Directory Structure section for the current file layout.
+
 ## Dependency: RLS
 
 Downstream of session resolution, Postgres RLS is expected to enforce `org_id` scoping on every table using `current_setting('app.org_id')` (or equivalent), set per-request by the Express layer from the trusted header. **No RLS policies exist in the current migration at all** — not even single-org scoping for the one org that exists today. This is a prerequisite for both real multi-org safety and demo isolation; it is not demo-specific and shouldn't be designed as part of the demo work. Tracked as a new item in `CROSSCONTEXT_TODOS.md`.

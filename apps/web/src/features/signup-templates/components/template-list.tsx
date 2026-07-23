@@ -5,7 +5,7 @@ import type { SignupTemplateListItem } from "@vc/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { deleteSignupTemplate } from "../../actions"
+import { deleteSignupTemplate } from "@/features/signup-templates/actions"
 
 const ROLE_LABELS: Record<string, string> = {
   head_coach: "Head Coach",

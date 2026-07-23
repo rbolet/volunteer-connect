@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import type { SignupStatus } from "@vc/types"
 import { Button } from "@/components/ui/button"
-import { changeSignupStatus } from "../../../actions"
+import { changeSignupStatus } from "@/features/signups/actions"
 
 export interface AwardSummary {
   total: number

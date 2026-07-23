@@ -9,7 +9,7 @@ const { addSlot, updateSlot, deleteSlot } = vi.hoisted(() => ({
   updateSlot: vi.fn(),
   deleteSlot: vi.fn(),
 }))
-vi.mock("../../../../actions", () => ({ addSlot, updateSlot, deleteSlot }))
+vi.mock("@/features/signups/actions", () => ({ addSlot, updateSlot, deleteSlot }))
 
 const freeSlot: EditableSlot = {
   id: "slot_free",
