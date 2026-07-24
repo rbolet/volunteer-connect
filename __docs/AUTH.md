@@ -2,7 +2,7 @@
 
 Load on demand. Referenced from CLAUDE.md and DEMO_MODE.md.
 
-**Status: demo path implemented (2026-07-15); Supabase path still a stub.** `SessionResolver` + `DemoSessionResolver` live in `apps/web/src/lib/auth/`; `SupabaseSessionResolver` is a stub returning `null` (no `@supabase/ssr` integration yet, no RLS). Implementation resolved the open decisions below as follows:
+**Status: demo path implemented (2026-07-15); Supabase path still a stub.** `SessionResolver` + `DemoSessionResolver` live in `apps/web/src/lib/auth/`; `SupabaseSessionResolver` is a stub returning `null` (no `@supabase/ssr` integration yet, no RLS). **Express-layer support it will call now exists** (`REAL_AUTH_IMPLEMENTATION.md` Phase 1, 2026-07-23): `UserSessionRepo`/`OrgInvitesRepo` (`apps/api/src/repositories/`) and `GET /internal/user-session`, `GET /internal/invites/:token/validate`, `POST /internal/invites/redeem` (`apps/api/src/routes/internal.ts`) — but the migration adding `OrgInvite` hasn't been applied to any DB yet (no local dev Postgres, see `NEXT_SESSION.md`), and nothing in `apps/web` wires to these endpoints yet (Phase 2+). Implementation resolved the open decisions below as follows:
 
 - **Middleware vs. route handlers — split.** Edge middleware (`apps/web/src/middleware.ts`) does route dispatch + signed-cookie issuance only (Web Crypto HMAC, Edge-safe); full session resolution (DB-backed roles lookup) runs in Node via `getDemoSession()`/`resolverFor()` in `lib/auth/session-resolver.ts`, since Edge can't run Prisma.
 - **Cookie secret — distinct `DEMO_SESSION_SECRET`**, not `TRUSTED_BFF_SECRET`.

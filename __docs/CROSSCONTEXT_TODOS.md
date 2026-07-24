@@ -43,7 +43,7 @@ Items that span multiple features or layers and need to be implemented once at t
 
 **Also blocked on this**: the `/demo/*`-prefixed frontend route tree becoming a single shared tree (cookie-based resolver dispatch instead of path-based, `/demo` reduced to a pure entry-point redirect). `apps/web/src/features/` was already split out of `app/demo/` in the 2026-07-23 reorg so this is routing-only work when picked up.
 
-**Planned, not started (2026-07-23 planning session)**: full scope now covers both `SupabaseSessionResolver` and the route-tree collapse together, plus a new invite-only org-assignment mechanism (`OrgInvite` — resolves the "how does a new user get an org_id" open decision in `AUTH.md`). Phased build-out with checkable progress: `__docs/plans/REAL_AUTH_IMPLEMENTATION.md`.
+**Phase 1 in progress (planned 2026-07-23; Phase 1 schema/Express landed 2026-07-23)**: full scope covers both `SupabaseSessionResolver` and the route-tree collapse together, plus a new invite-only org-assignment mechanism (`OrgInvite` — resolves the "how does a new user get an org_id" open decision in `AUTH.md`). Phased build-out with checkable progress: `__docs/plans/REAL_AUTH_IMPLEMENTATION.md`.
 
 ---
 

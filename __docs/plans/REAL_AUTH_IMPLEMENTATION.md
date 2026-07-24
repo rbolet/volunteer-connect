@@ -1,6 +1,6 @@
 # Real Auth (Supabase) + Route Tree Collapse — Implementation Tracker
 
-**Status: Phase 0 — planned, not started.** This is the active build-out doc for real user auth. Written so a **clean session with no prior context can pick up any phase using this doc plus the referenced "living" docs (`AUTH.md`, `DATA_MODEL.md`, `DEMO_MODE.md`, `FRONTEND.md`, `API.md`) — without needing to grep the codebase first.** Update the status line and check off items as work lands; each phase should end with a session-log entry (`__docs/sessions/YYYY-MM-DD.md`) noting what actually landed, per CLAUDE.md's session-log convention.
+**Status: Phase 1 in progress — schema/Zod/Express/CLI built and tested; migration not applied, `redeem()` untested against a real DB (both blocked on no local dev Postgres, see `__docs/NEXT_SESSION.md`).** This is the active build-out doc for real user auth. Written so a **clean session with no prior context can pick up any phase using this doc plus the referenced "living" docs (`AUTH.md`, `DATA_MODEL.md`, `DEMO_MODE.md`, `FRONTEND.md`, `API.md`) — without needing to grep the codebase first.** Update the status line and check off items as work lands; each phase should end with a session-log entry (`__docs/sessions/YYYY-MM-DD.md`) noting what actually landed, per CLAUDE.md's session-log convention.
 
 **Progress**: ☐ Phase 1 · ☐ Phase 2 · ☐ Phase 3 · ☐ Phase 4 · ☐ Phase 5
 
@@ -25,7 +25,7 @@ Nothing in `apps/web` depends on this phase. Can be built and merged first, veri
 
 ### Schema
 
-- [ ] `packages/db/prisma/schema.prisma` — add:
+- [x] `packages/db/prisma/schema.prisma` — add:
   ```prisma
   model OrgInvite {
     id          String       @id @default(cuid())
@@ -45,7 +45,7 @@ Nothing in `apps/web` depends on this phase. Can be built and merged first, veri
   }
   ```
   Add `orgInvites OrgInvite[]` to the `Organization` model. Follows the existing audit-field convention used by every non-pivot entity (plain nullable `created_by`/`updated_by`, no FK relation on those — see `Organization`/`User` in the same file for the pattern). No `role` field — see Decision 5, invites never grant `OrgRole`.
-- [ ] Generate + apply the migration (`packages/db/prisma/migrations/`).
+- [ ] Generate + apply the migration (`packages/db/prisma/migrations/`) — **deferred**, no local dev Postgres exists yet (`__docs/NEXT_SESSION.md` item 2); `prisma generate` (client codegen only) was run instead so the code below compiles.
 
 ### Token format
 
@@ -61,7 +61,7 @@ Nothing in `apps/web` depends on this phase. Can be built and merged first, veri
 
 ### Zod schemas
 
-- [ ] `packages/zod/src/org-invite.ts` (new):
+- [x] `packages/zod/src/org-invite.ts` (new):
   ```ts
   export const inviteRedeemInputSchema = z.object({
     token: z.string().min(1),
@@ -75,7 +75,7 @@ Nothing in `apps/web` depends on this phase. Can be built and merged first, veri
   export type InviteValidateResponse = z.infer<typeof inviteValidateResponseSchema>
   ```
   Export both from `packages/zod/src/index.ts`.
-- [ ] `packages/zod/src/session.ts` — factor out a shared base so both demo and real-user session responses use one Zod type:
+- [x] `packages/zod/src/session.ts` — factor out a shared base so both demo and real-user session responses use one Zod type:
   ```ts
   export const appSessionResponseSchema = z.object({
     user: z.object({ id: z.string().min(1), name: z.string().min(1), email: z.string().email() }),
@@ -93,8 +93,8 @@ Nothing in `apps/web` depends on this phase. Can be built and merged first, veri
 
 Mirror `apps/api/src/repositories/demo-session.ts` exactly — same shape (`interface XRepo { ... }`, `createXRepo(prisma)` factory), same style of Prisma queries (`findFirst` with `deleted_at: null`, join `orgRoles`/`teamMemberships`).
 
-- [ ] `apps/api/src/repositories/user-session.ts` — `UserSessionRepo.resolve(authId): Promise<AppSessionResponse | null>`. Finds `User` by `auth_id` (+ `deleted_at: null`), joins `orgRoles`/`teamMemberships`, builds `ResolvedSession` with `source: "supabase"`. Returns `null` when no `User` row exists — this is the "needs org" signal the web layer (Phase 2) keys off of.
-- [ ] `apps/api/src/repositories/org-invites.ts`:
+- [x] `apps/api/src/repositories/user-session.ts` — `UserSessionRepo.resolve(authId): Promise<AppSessionResponse | null>`. Finds `User` by `auth_id` (+ `deleted_at: null`), joins `orgRoles`/`teamMemberships`, builds `ResolvedSession` with `source: "supabase"`. Returns `null` when no `User` row exists — this is the "needs org" signal the web layer (Phase 2) keys off of.
+- [x] `apps/api/src/repositories/org-invites.ts`:
   ```ts
   export type ValidateResult =
     | { ok: true; org_id: string; org_name: string }
@@ -111,25 +111,25 @@ Mirror `apps/api/src/repositories/demo-session.ts` exactly — same shape (`inte
   }
   ```
   `redeem()` runs inside one `prisma.$transaction`: re-fetch the invite by token (`deleted_at: null`), re-check not expired/redeemed, soft-check `email` pin if set, create `User` (`org_id` from invite, `auth_id`, `email`, `name` — **no `OrgRole`, no `TeamMembership`**, per Decision 5), stamp `redeemed_at`/`redeemed_by`. `User.auth_id` is already `@unique` in the schema, so a double-redeem race against the same Supabase account fails safely at the DB constraint even though the invite-row check itself has a small accepted TOCTOU window (fine at pilot concurrency — don't over-engineer locking here).
-- [ ] `apps/api/src/repositories/index.ts` — add `userSession: UserSessionRepo` and `orgInvites: OrgInvitesRepo` to the `Repos` interface and `createRepos()`.
+- [x] `apps/api/src/repositories/index.ts` — add `userSession: UserSessionRepo` and `orgInvites: OrgInvitesRepo` to the `Repos` interface and `createRepos()`.
 
 ### Express routes
 
 All under `apps/api/src/routes/internal.ts`, gated the same way `/demo-session` is (`requireBffSecret` only — these run **pre-session**, before a `ResolvedSession` exists to validate):
 
-- [ ] `GET /internal/user-session?auth_id=<id>` → 404 `{error:"user_not_found"}` when `resolve()` returns null, else 200 `AppSessionResponse`.
-- [ ] `GET /internal/invites/:token/validate` → `validate()`; map `not_found`→404, `expired`→410, `redeemed`→409, else 200 `{org_id, org_name}`.
-- [ ] `POST /internal/invites/redeem` (body validated against `inviteRedeemInputSchema`) → `redeem()`; same status mapping as validate, plus `email_mismatch`→400, else 200 `{userId}`.
+- [x] `GET /internal/user-session?auth_id=<id>` → 404 `{error:"user_not_found"}` when `resolve()` returns null, else 200 `AppSessionResponse`.
+- [x] `GET /internal/invites/:token/validate` → `validate()`; map `not_found`→404, `expired`→410, `redeemed`→409, else 200 `{org_id, org_name}`.
+- [x] `POST /internal/invites/redeem` (body validated against `inviteRedeemInputSchema`) → `redeem()`; same status mapping as validate, plus `email_mismatch`→400, else 200 `{userId}`.
 
 ### CLI script (the actual UAT invite-creation path, since there's no admin UI)
 
-- [ ] `packages/db/scripts/create-invite.ts` — CLI: `pnpm --filter @vc/db exec tsx scripts/create-invite.ts --org-id <id> [--email <pin>] [--days 14]`. Generates a token per the format above, inserts the `OrgInvite` row via Prisma, prints `Invite created: <token>` and the equivalent `/sign-up?invite=<token>` URL. Look up the target `org_id` via `prisma.organization.findFirst({ where: { is_demo: false } })` if `--org-id` isn't passed, or list orgs and prompt — keep it simple, this is a dev-only tool.
+- [x] `packages/db/scripts/create-invite.ts` — CLI (written/typechecked; not run end-to-end yet — no migration applied, see above): `pnpm --filter @vc/db exec tsx scripts/create-invite.ts --org-id <id> [--email <pin>] [--days 14]`. Generates a token per the format above, inserts the `OrgInvite` row via Prisma, prints `Invite created: <token>` and the equivalent `/sign-up?invite=<token>` URL. Look up the target `org_id` via `prisma.organization.findFirst({ where: { is_demo: false } })` if `--org-id` isn't passed, or list orgs and prompt — keep it simple, this is a dev-only tool.
 
 ### Tests
 
-- [ ] Extend `apps/api/src/__tests__/internal.routes.test.ts` for `GET /internal/user-session` (401 without BFF secret, 404 when unresolved, 200 with a fake-repo-backed `AppSessionResponse` — mirror the existing demo-session test's fake-repo injection pattern).
-- [ ] New `apps/api/src/__tests__/org-invites.routes.test.ts` — status-code matrix for both endpoints (all `reason` values → their mapped status).
-- [ ] Repo-level test for `redeem()`'s transaction — creates `User` correctly, rejects a second redeem of the same token, rejects an expired token, rejects on email-pin mismatch. Use the mocked/in-memory Prisma pattern the existing repo tests already use (see `TESTING.md`'s file-layout table for where this convention is documented).
+- [x] Extend `apps/api/src/__tests__/internal.routes.test.ts` for `GET /internal/user-session` (401 without BFF secret, 404 when unresolved, 200 with a fake-repo-backed `AppSessionResponse` — mirror the existing demo-session test's fake-repo injection pattern).
+- [x] New `apps/api/src/__tests__/org-invites.routes.test.ts` — status-code matrix for both endpoints (all `reason` values → their mapped status).
+- [ ] Repo-level test for `redeem()`'s transaction — creates `User` correctly, rejects a second redeem of the same token, rejects an expired token, rejects on email-pin mismatch. **Deferred** — needs a real Prisma client against a local dev DB (no mocking library in this repo, and no live DB to test the real transaction/unique-constraint behavior against this session); tracked in `__docs/NEXT_SESSION.md` item 2. `validate()`/`redeem()` are fully implemented and covered at the route layer via `fakeRepos` in the meantime.
 
 ## Phase 2 — Resolver + Middleware
 

@@ -31,6 +31,12 @@ export function fakeRepos(overrides: {
   }
   return {
     demoSession: { resolve: reject("demoSession.resolve"), ...overrides.demoSession },
+    userSession: { resolve: reject("userSession.resolve"), ...overrides.userSession },
+    orgInvites: {
+      validate: reject("orgInvites.validate"),
+      redeem: reject("orgInvites.redeem"),
+      ...overrides.orgInvites,
+    },
     signups: {
       listForOrg: reject("signups.listForOrg"),
       getDetail: reject("signups.getDetail"),

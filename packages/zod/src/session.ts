@@ -25,15 +25,21 @@ export type ResolvedSession = z.infer<typeof resolvedSessionSchema>
 export const demoIdentitySchema = z.enum(["admin", "head_coach", "coach", "referee", "volunteer"])
 export type DemoIdentity = z.infer<typeof demoIdentitySchema>
 
-// Response of the internal (BFF-secret-guarded) demo-session endpoint —
-// the session itself plus display fields the demo banner/switcher needs.
-export const demoSessionResponseSchema = z.object({
-  identity: demoIdentitySchema,
+// Base response shared by every internal (BFF-secret-guarded) session
+// endpoint: the resolved session plus the display fields pages need.
+export const appSessionResponseSchema = z.object({
   user: z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     email: z.string().email(),
   }),
   session: resolvedSessionSchema,
+})
+export type AppSessionResponse = z.infer<typeof appSessionResponseSchema>
+
+// Response of the internal demo-session endpoint — appSessionResponseSchema
+// plus the identity the demo banner/switcher needs.
+export const demoSessionResponseSchema = appSessionResponseSchema.extend({
+  identity: demoIdentitySchema,
 })
 export type DemoSessionResponse = z.infer<typeof demoSessionResponseSchema>

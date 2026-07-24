@@ -2,9 +2,9 @@
 
 Working notes for the next session to pick up. Not a durable reference doc — clear out/fold into `CROSSCONTEXT_TODOS.md` or a feature task once acted on.
 
-## 0. Real auth + route-tree collapse — active, phased build-out (2026-07-23 planning)
+## 0. Real auth + route-tree collapse — active, phased build-out (2026-07-23 planning; Phase 1 landed 2026-07-23)
 
-Planned in full (schema, Express endpoints, resolver, middleware, route tree, sign-in/sign-up UI) but **not started**. This is the next big feature thread. Pick up at `__docs/plans/REAL_AUTH_IMPLEMENTATION.md` — it's written to be resumable from a clean session: read its Decisions section first (org assignment = invite-only, human-readable invite tokens, real users default to plain non-admin members, both the auth work and the route-tree collapse are one effort), then start at Phase 1 (schema + Express, no UI, independently testable) and work down. Check off items in that doc as they land; remove this entry once Phase 1 is underway (the doc's own status line is the source of truth from then on).
+Planned in full (schema, Express endpoints, resolver, middleware, route tree, sign-in/sign-up UI). **Phase 1 (schema + Express) is built and Supertest/Vitest-green** — `OrgInvite` model, `UserSessionRepo`/`OrgInvitesRepo`, the three `/internal/*` endpoints, `packages/db/scripts/create-invite.ts`. Two Phase 1 items remain undone, both blocked on item 2 below (no local dev DB): the migration hasn't been generated/applied anywhere, and `redeem()`'s transaction has no test against a real Prisma client. Pick up at `__docs/plans/REAL_AUTH_IMPLEMENTATION.md` — start with those two, then Phase 2 (resolver + middleware).
 
 ## 1. Deployed-chain verification (manually confirmed 2026-07-23; automated version deferred)
 
@@ -12,9 +12,11 @@ The three env changes flagged in the 2026-07-15 session (Railway/CI pooler URL, 
 
 `scripts/verify-deploy.mjs` still only checks each service in isolation (Vercel health redirect, Railway `/health`, Supabase via PostgREST) — no automated version of the manual check above exists. A concrete plan to close that gap was drafted 2026-07-23 and **deliberately deferred** (it needs a new `DEPLOY_CHECK_SECRET` env var, which wasn't wanted yet) — see `CROSSCONTEXT_TODOS.md` → "Deployed-Chain Verification" and the full design in `DEPLOY_CHAIN_VERIFICATION_PLAN.md`. Not actively queued for next session; pick up only if/when the env-var tradeoff is revisited.
 
-## 2. Docker as local dev environment for `apps/api`
+## 2. Docker as local dev environment for `apps/api` — now also blocking Phase 1 of real auth
 
 Still open from 2026-07-09, with new context: the Dockerfile now runs from TS source via tsx and requires `prisma generate` in the build (see `DEPLOYMENT.md`). The CI `api-image-smoke-test` covers boot, but a local `docker build`/`run` script would catch image issues (e.g. the `packages/logger` COPY added this session) before push.
+
+**New as of 2026-07-23:** `packages/db/.env`'s `DATABASE_URL` is the live Supabase pooler — there's no local Postgres/Supabase running at all (no `supabase` CLI installed, no docker containers). This was fine for Phase 1 of `REAL_AUTH_IMPLEMENTATION.md` (route-level tests use `fakeRepos`, no DB needed) but now blocks three concrete things: generating + applying the `OrgInvite` migration, running `packages/db/scripts/create-invite.ts` for real, and writing a repository-layer test for `org-invites.ts`'s `redeem()` transaction against a real Prisma client (`TESTING.md`'s file-layout table names this pattern; it doesn't exist yet anywhere in the repo). A local dev Postgres (`supabase start`, or a docker Postgres container) should get set up before picking Phase 1's loose ends back up or starting Phase 2.
 
 ## 3. Better error observability (BFF ↔ API)
 

@@ -32,4 +32,9 @@ export type {
   SaveSignupAsTemplateInput,
   SignupTemplateListItem,
 } from "@vc/zod"
-export type { ResolvedSession, DemoIdentity, DemoSessionResponse } from "./session"
+export type {
+  ResolvedSession,
+  DemoIdentity,
+  DemoSessionResponse,
+  AppSessionResponse,
+} from "./session"

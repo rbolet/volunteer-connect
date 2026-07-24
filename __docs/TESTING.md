@@ -30,7 +30,7 @@ apps/
       **/__tests__/        # Route integration tests (Vitest + Supertest)
 packages/
   db/
-    src/__tests__/         # Repository layer unit tests (Vitest + mocked Prisma client)
+    src/__tests__/         # Repository layer tests (Vitest against a real Prisma client on a local dev DB) — none written yet; local dev DB doesn't exist (NEXT_SESSION.md)
   zod/
     src/__tests__/         # Schema validation unit tests (Vitest)
 ```

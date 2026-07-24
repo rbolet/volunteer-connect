@@ -4,6 +4,6 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": ["src", "prisma.config.ts"],
+  "include": ["src", "scripts", "prisma.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

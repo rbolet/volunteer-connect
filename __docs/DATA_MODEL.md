@@ -29,11 +29,11 @@ Upload to Project Knowledge. Reference from task-specific chats; not part of alw
 - user_id, org_id, role (`admin`)
 - Org-scoped admin/coordinator permission, separate from team-level roles.
 
-**OrgInvite** (planned, not yet built — see `__docs/plans/REAL_AUTH_IMPLEMENTATION.md`)
+**OrgInvite** (schema + Express layer built — `apps/api/src/repositories/org-invites.ts`; not yet in `apps/web`, see `__docs/plans/REAL_AUTH_IMPLEMENTATION.md` Phase 2+. **Migration not yet applied to any DB** — no local dev Postgres exists yet, see `__docs/NEXT_SESSION.md`.)
 
 - id, org_id, token (unique, short human-readable code — not an opaque UUID), email (nullable pin), expires_at, redeemed_at, redeemed_by
 - How a real (non-demo) user gets an `org_id`: invite-only. Redeeming an invite creates a `User` row scoped to the invite's org and nothing else — no `OrgRole`, no `TeamMembership`. Blast radius of a leaked token is capped to "create one plain org member," which is why the token can stay short/typeable rather than a long opaque secret.
-- No admin-facing UI to issue invites yet — rows are created via a CLI script for UAT. Promoting a user to org admin is a direct DB edit for now, not an in-app action.
+- No admin-facing UI to issue invites yet — rows are created via `packages/db/scripts/create-invite.ts` for UAT. Promoting a user to org admin is a direct DB edit for now, not an in-app action.
 
 **Season**
 

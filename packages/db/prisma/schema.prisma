@@ -67,8 +67,28 @@ model Organization {
   signups         Signup[]
   events          Event[]
   signupTemplates SignupTemplate[]
+  orgInvites      OrgInvite[]
 
   @@map("organizations")
+}
+
+model OrgInvite {
+  id          String       @id @default(cuid())
+  org_id      String
+  token       String       @unique // human-readable code, e.g. "7K4M9XQP" — see packages/db/scripts/create-invite.ts
+  email       String?                // optional pin — if set, redemption must match
+  expires_at  DateTime
+  redeemed_at DateTime?
+  redeemed_by String?
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  created_by  String?
+  updated_by  String?
+  deleted_at  DateTime?
+
+  org Organization @relation(fields: [org_id], references: [id])
+
+  @@map("org_invites")
 }
 
 model User {
