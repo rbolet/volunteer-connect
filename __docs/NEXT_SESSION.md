@@ -2,6 +2,10 @@
 
 Working notes for the next session to pick up. Not a durable reference doc — clear out/fold into `CROSSCONTEXT_TODOS.md` or a feature task once acted on.
 
+## 0. Real auth + route-tree collapse — active, phased build-out (2026-07-23 planning)
+
+Planned in full (schema, Express endpoints, resolver, middleware, route tree, sign-in/sign-up UI) but **not started**. This is the next big feature thread. Pick up at `__docs/plans/REAL_AUTH_IMPLEMENTATION.md` — it's written to be resumable from a clean session: read its Decisions section first (org assignment = invite-only, human-readable invite tokens, real users default to plain non-admin members, both the auth work and the route-tree collapse are one effort), then start at Phase 1 (schema + Express, no UI, independently testable) and work down. Check off items in that doc as they land; remove this entry once Phase 1 is underway (the doc's own status line is the source of truth from then on).
+
 ## 1. Deployed-chain verification (manually confirmed 2026-07-23; automated version deferred)
 
 The three env changes flagged in the 2026-07-15 session (Railway/CI pooler URL, Vercel `DEMO_SESSION_SECRET`, Vercel `API_URL`) are live and correct — confirmed 2026-07-23 by manually exercising the deployed app: reads (DB-backed views), writes (claim/withdraw), and admin actions (role switching) all check out against the real Vercel → Railway → Supabase chain.
